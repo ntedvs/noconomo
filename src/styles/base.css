@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1 {
+    @apply mb-4 text-5xl font-bold;
+  }
+}
+
+@layer components {
+  .input {
+    @apply rounded border border-primary bg-background p-2;
+  }
+  .button {
+    @apply rounded bg-primary p-2 text-background;
+  }
+}
