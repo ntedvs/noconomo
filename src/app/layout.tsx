@@ -1,22 +1,23 @@
 import "@/styles/base.css"
 import { Metadata } from "next"
-import Link from "next/link"
+import { Ubuntu } from "next/font/google"
 import { ReactNode } from "react"
+
+const ubuntu = Ubuntu({ weight: "400", subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: { default: "Noconomo", template: "%s | Noconomo" },
 }
 
-export default async function Layout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <nav className="flex gap-4 p-4 text-2xl">
-          <Link href="/">Noconomo</Link>
-          <Link href="/gallery">Gallery</Link>
-        </nav>
-
-        <main className="mx-auto w-4/5 lg:w-3/5">{children}</main>
+      <body
+        className={`flex min-h-screen flex-col bg-background text-foreground ${ubuntu.className}`}
+      >
+        <header className="mx-auto w-full max-w-6xl"></header>
+        <main className="mx-auto w-full max-w-6xl grow">{children}</main>
+        <footer className="mx-auto w-full max-w-6xl"></footer>
       </body>
     </html>
   )
