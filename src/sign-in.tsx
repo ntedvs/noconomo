@@ -1,31 +1,31 @@
-import { useState } from "react";
-import { useAuth } from "./auth";
+import { useState } from "react"
+import { useAuth } from "./auth"
 
 export function SignIn() {
-  const { requestCode, verifyCode } = useAuth();
-  const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const { requestCode, verifyCode } = useAuth()
+  const [step, setStep] = useState<"email" | "code">("email")
+  const [email, setEmail] = useState("")
+  const [code, setCode] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr(null);
-    setBusy(true);
+    e.preventDefault()
+    setErr(null)
+    setBusy(true)
     try {
       if (step === "email") {
-        await requestCode(email);
-        setStep("code");
+        await requestCode(email)
+        setStep("code")
       } else {
-        await verifyCode(email, code);
+        await verifyCode(email, code)
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      setErr(e instanceof Error ? e.message : String(e))
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={submit}>
@@ -51,5 +51,5 @@ export function SignIn() {
       </button>
       {err && <p>{err}</p>}
     </form>
-  );
+  )
 }

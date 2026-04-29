@@ -1,14 +1,14 @@
-import { NavLink } from "react-router";
-import { useAuth } from "./auth";
+import { NavLink } from "react-router"
+import { useAuth } from "./auth"
 
 export function Nav() {
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useAuth()
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-2 py-1 rounded ${isActive ? "bg-gray-200" : "hover:bg-gray-100"}`;
+    `px-2 py-1 rounded ${isActive ? "bg-gray-200" : "hover:bg-gray-100"}`
 
   return (
-    <nav className="flex items-center gap-2 px-4 py-2 border-b">
+    <nav className="flex items-center gap-2 border-b px-4 py-2">
       <NavLink to="/" className={linkClass} end>
         Home
       </NavLink>
@@ -35,12 +35,15 @@ export function Nav() {
         {user ? (
           <>
             <span className="text-sm text-gray-600">{user.name}</span>
-            <button onClick={signOut} className="px-2 py-1 rounded hover:bg-gray-100">
+            <button
+              onClick={signOut}
+              className="rounded px-2 py-1 hover:bg-gray-100"
+            >
               Sign out
             </button>
           </>
         ) : null}
       </div>
     </nav>
-  );
+  )
 }

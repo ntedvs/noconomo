@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from "convex/server"
+import { v } from "convex/values"
 
 export default defineSchema({
   users: defineTable({
@@ -26,4 +26,4 @@ export default defineSchema({
     tokenHash: v.string(),
     expiresAt: v.number(),
   }).index("by_tokenHash", ["tokenHash"]),
-});
+})

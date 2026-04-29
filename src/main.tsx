@@ -1,16 +1,16 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import "./index.css";
-import App from "./app.tsx";
-import Calendar from "./calendar";
-import Members from "./members";
-import Gallery from "./gallery";
-import Handbook from "./handbook";
-import Store from "./store";
-import { AuthProvider, RequireAuth } from "./auth";
-import { Nav } from "./nav";
+import { ConvexProvider, ConvexReactClient } from "convex/react"
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { BrowserRouter, Routes, Route, Outlet } from "react-router"
+import "./index.css"
+import App from "./app.tsx"
+import { AuthProvider, RequireAuth } from "./auth"
+import Calendar from "./calendar"
+import Gallery from "./gallery"
+import Handbook from "./handbook"
+import Members from "./members"
+import { Nav } from "./nav"
+import Store from "./store"
 
 function Layout() {
   return (
@@ -18,10 +18,10 @@ function Layout() {
       <Nav />
       <Outlet />
     </>
-  );
+  )
 }
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -77,4 +77,4 @@ createRoot(document.getElementById("root")!).render(
       </AuthProvider>
     </ConvexProvider>
   </StrictMode>,
-);
+)

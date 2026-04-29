@@ -1,15 +1,17 @@
+import { useTitle } from "./use-title"
+
 type Section = {
-  id: string;
-  title: string;
-  body: React.ReactNode;
-};
+  id: string
+  title: string
+  body: React.ReactNode
+}
 
 type Provider = {
-  service: string;
-  name: string;
-  phone: string;
-  account?: string;
-};
+  service: string
+  name: string
+  phone: string
+  account?: string
+}
 
 const PROVIDERS: Provider[] = [
   {
@@ -48,7 +50,7 @@ const PROVIDERS: Provider[] = [
   { service: "Structural", name: "Roy Darling", phone: "(603) 556-0360" },
   { service: "Insurance", name: "Avery Insurance", phone: "(603) 569-2515" },
   { service: "Dock", name: "WMC", phone: "(603) 875-7768" },
-];
+]
 
 const SECTIONS: Section[] = [
   {
@@ -57,7 +59,9 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>354 Sewall Rd., Wolfeboro, NH 03894</p>
-        <p className="text-gray-700">Property Manager: Ben Muchler — 617-824-0742</p>
+        <p className="text-gray-700">
+          Property Manager: Ben Muchler — 617-824-0742
+        </p>
       </>
     ),
   },
@@ -68,7 +72,7 @@ const SECTIONS: Section[] = [
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-gray-600 border-b">
+            <tr className="border-b text-left text-gray-600">
               <th className="py-2 pr-4 font-medium">Service</th>
               <th className="py-2 pr-4 font-medium">Provider</th>
               <th className="py-2 pr-4 font-medium">Phone</th>
@@ -81,7 +85,10 @@ const SECTIONS: Section[] = [
                 <td className="py-2 pr-4 font-medium">{p.service}</td>
                 <td className="py-2 pr-4">{p.name}</td>
                 <td className="py-2 pr-4">
-                  <a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`} className="hover:underline">
+                  <a
+                    href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}
+                    className="hover:underline"
+                  >
                     {p.phone}
                   </a>
                 </td>
@@ -129,9 +136,10 @@ const SECTIONS: Section[] = [
         <div>
           <p className="font-medium">How do we handle trash/garbage?</p>
           <p className="text-gray-700">
-            Take the trash bins to the top of the driveway each Tuesday morning. There is a sticker
-            for use at the transfer station if you need it (by the sink). Trash removal is handled
-            by Casella who can be reached at{" "}
+            Take the trash bins to the top of the driveway each Tuesday morning.
+            There is a sticker for use at the transfer station if you need it
+            (by the sink). Trash removal is handled by Casella who can be
+            reached at{" "}
             <a href="tel:18004451318" className="hover:underline">
               1-800-445-1318
             </a>{" "}
@@ -163,16 +171,16 @@ const SECTIONS: Section[] = [
           <p className="text-gray-700">
             $6 per share with a suggested $200 minimum per shareholder.
           </p>
-          <p className="text-gray-700 mt-2">
+          <p className="mt-2 text-gray-700">
             Make checks to <em>Noconomo Corporation</em> and mail c/o:
           </p>
-          <address className="not-italic text-gray-700 mt-1">
+          <address className="mt-1 text-gray-700 not-italic">
             Ben Muchler
             <br />4 Great Pond Drive
             <br />
             Boxford, MA 01921
           </address>
-          <p className="text-gray-700 mt-2">
+          <p className="mt-2 text-gray-700">
             Or Venmo to{" "}
             <a
               href="https://venmo.com/u/benmuchler"
@@ -193,18 +201,19 @@ const SECTIONS: Section[] = [
     title: "Neighbors",
     body: <p className="text-gray-500 italic">Coming soon.</p>,
   },
-];
+]
 
 export default function Handbook() {
+  useTitle("Handbook")
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">Handbook</h2>
+    <div className="mx-auto max-w-3xl p-4">
+      <h2 className="mb-4 text-2xl font-semibold">Handbook</h2>
       <nav className="mb-6 flex flex-wrap gap-2 text-sm">
         {SECTIONS.map((s) => (
           <a
             key={s.id}
             href={`#${s.id}`}
-            className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+            className="rounded bg-gray-100 px-2 py-1 hover:bg-gray-200"
           >
             {s.title}
           </a>
@@ -213,11 +222,11 @@ export default function Handbook() {
       <div className="space-y-8">
         {SECTIONS.map((s) => (
           <section key={s.id} id={s.id} className="scroll-mt-16">
-            <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
+            <h3 className="mb-2 text-lg font-semibold">{s.title}</h3>
             <div className="space-y-2">{s.body}</div>
           </section>
         ))}
       </div>
     </div>
-  );
+  )
 }

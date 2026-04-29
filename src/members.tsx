@@ -1,16 +1,18 @@
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { useAuth } from "./auth";
+import { useQuery } from "convex/react"
+import { api } from "../convex/_generated/api"
+import { useAuth } from "./auth"
+import { useTitle } from "./use-title"
 
 export default function Members() {
-  const { token } = useAuth();
-  const users = useQuery(api.users.list, { token });
+  useTitle("Members")
+  const { token } = useAuth()
+  const users = useQuery(api.users.list, { token })
 
-  if (users === undefined) return <div className="p-4">Loading…</div>;
+  if (users === undefined) return <div className="p-4">Loading…</div>
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-3">Members</h2>
+      <h2 className="mb-3 text-xl font-semibold">Members</h2>
       <ul className="divide-y">
         {users.map((u) => (
           <li key={u._id} className="py-2">
@@ -20,5 +22,5 @@ export default function Members() {
         ))}
       </ul>
     </div>
-  );
+  )
 }
