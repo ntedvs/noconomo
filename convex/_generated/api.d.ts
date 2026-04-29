@@ -8,22 +8,29 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
+import type * as email from "../email.js";
+import type * as events from "../events.js";
+import type * as families from "../families.js";
+import type * as images from "../images.js";
+import type * as reservations from "../reservations.js";
+import type * as users from "../users.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from "convex/server"
-import type * as auth from "../auth.js"
-import type * as email from "../email.js"
-import type * as images from "../images.js"
-import type * as users from "../users.js"
+} from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  auth: typeof auth
-  email: typeof email
-  images: typeof images
-  users: typeof users
-}>
+  auth: typeof auth;
+  email: typeof email;
+  events: typeof events;
+  families: typeof families;
+  images: typeof images;
+  reservations: typeof reservations;
+  users: typeof users;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
@@ -36,7 +43,7 @@ declare const fullApi: ApiFromModules<{
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, "public">
->
+>;
 
 /**
  * A utility for referencing Convex functions in your app's internal API.
@@ -49,6 +56,6 @@ export declare const api: FilterApi<
 export declare const internal: FilterApi<
   typeof fullApi,
   FunctionReference<any, "internal">
->
+>;
 
-export declare const components: {}
+export declare const components: {};

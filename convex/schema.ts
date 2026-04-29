@@ -26,4 +26,24 @@ export default defineSchema({
     tokenHash: v.string(),
     expiresAt: v.number(),
   }).index("by_tokenHash", ["tokenHash"]),
+
+  families: defineTable({
+    name: v.string(),
+    color: v.string(),
+  }).index("by_name", ["name"]),
+
+  reservations: defineTable({
+    familyId: v.id("families"),
+    startDate: v.string(),
+    endDate: v.string(),
+    createdBy: v.id("users"),
+  })
+    .index("by_startDate", ["startDate"])
+    .index("by_familyId", ["familyId"]),
+
+  events: defineTable({
+    date: v.string(),
+    title: v.string(),
+    createdBy: v.id("users"),
+  }).index("by_date", ["date"]),
 })
