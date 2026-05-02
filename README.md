@@ -18,9 +18,16 @@ Pages and Features
 2. Cost share app
 3. Calendar with pricing guide
 4. Consider a bidding system for weeks
-5. 
+5. FAQ
+  1. Recycle
+  2. Utilities
+    1. Electric
+    2. Water
+6. Contacts
+7. Members
+8. Maintenance and Projects
 
-6. board and director page
+11. board and director page
 Current Officers:
 President (John Davis), Vice President (Martha Holland), Treasurer (Ben Muchler), Recording Secretary (Sarah Holland), Scheduling Secretary (Alex Pirie), Property Chair (Ben Muchler), Website/Membership Manager (Stewart Davis)
 
