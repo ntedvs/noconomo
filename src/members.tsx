@@ -95,9 +95,7 @@ export default function Members() {
                   <td className="border px-2 py-1">{u.generation ?? ""}</td>
                   <td className="border px-2 py-1">{u.shares ?? ""}</td>
                   {isAdmin && (
-                    <td className="border px-2 py-1">
-                      {u.admin ? "Yes" : ""}
-                    </td>
+                    <td className="border px-2 py-1">{u.admin ? "Yes" : ""}</td>
                   )}
                 </tr>
               )

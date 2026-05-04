@@ -1,9 +1,4 @@
-import {
-  FilePlusIcon,
-  PlusIcon,
-  TrashIcon,
-  XIcon,
-} from "@phosphor-icons/react"
+import { FilePlusIcon, PlusIcon, TrashIcon, XIcon } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { format } from "date-fns"
 import { useState } from "react"
@@ -159,9 +154,7 @@ function ExpenseModal(
 
   const initial = props.mode === "edit" ? props.expense : null
   const [item, setItem] = useState(initial?.item ?? "")
-  const [cost, setCost] = useState(
-    initial ? initial.cost.toFixed(2) : "",
-  )
+  const [cost, setCost] = useState(initial ? initial.cost.toFixed(2) : "")
   const [notes, setNotes] = useState(initial?.notes ?? "")
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(
     initial?.attachments ?? [],
@@ -288,10 +281,7 @@ function ExpenseModal(
                 {existingAttachments.map((a) => {
                   const { base, ext } = splitFileName(a.fileName)
                   return (
-                    <li
-                      key={a.storageId}
-                      className="flex items-center gap-1"
-                    >
+                    <li key={a.storageId} className="flex items-center gap-1">
                       <input
                         value={base}
                         onChange={(e) =>

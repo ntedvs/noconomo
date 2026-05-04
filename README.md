@@ -23,31 +23,31 @@
 
 Dates are Saturday to Saturday.
 
-| Dates              | Family            |
-| ------------------ | ----------------- |
-| May 9              | Family WorkDay    |
-| May 16             | Annual Meeting    |
-| May 23–25          | Baileys (Memorial Day Weekend) |
-| May 30 – June 6    |                   |
-| June 6 – June 13   |                   |
-| June 13 – June 20  |                   |
-| June 20 – June 27  | Chiampa           |
-| June 27 – July 4   | Konides           |
-| July 4 – July 11   | Pirie             |
-| July 11 – July 18  | Holland           |
-| July 18 – July 25  | Rice/Muchler      |
-| July 25 – Aug. 1   | Rice/Muchler      |
-| Aug. 1 – Aug. 8    | Davis             |
-| Aug. 8 – Aug. 15   | Bailey            |
-| Aug. 15 – Aug. 22  | Abbott            |
-| Aug. 22 – Aug. 29  | Pirie             |
-| Aug. 29 – Sept. 5  | Howard/Guyette    |
-| Sept. 5 – Sept. 12 | (Labor Day Mon 7) |
-| Sept. 12 – Sept. 19|                   |
-| Sept. 19 – Sept. 26|                   |
-| Sept. 26 – Oct. 3  |                   |
-| Oct. 10–12         | Indigenous People's Day Weekend |
-| Oct. 18            | Camp Closing (tentative) |
+| Dates               | Family                          |
+| ------------------- | ------------------------------- |
+| May 9               | Family WorkDay                  |
+| May 16              | Annual Meeting                  |
+| May 23–25           | Baileys (Memorial Day Weekend)  |
+| May 30 – June 6     |                                 |
+| June 6 – June 13    |                                 |
+| June 13 – June 20   |                                 |
+| June 20 – June 27   | Chiampa                         |
+| June 27 – July 4    | Konides                         |
+| July 4 – July 11    | Pirie                           |
+| July 11 – July 18   | Holland                         |
+| July 18 – July 25   | Rice/Muchler                    |
+| July 25 – Aug. 1    | Rice/Muchler                    |
+| Aug. 1 – Aug. 8     | Davis                           |
+| Aug. 8 – Aug. 15    | Bailey                          |
+| Aug. 15 – Aug. 22   | Abbott                          |
+| Aug. 22 – Aug. 29   | Pirie                           |
+| Aug. 29 – Sept. 5   | Howard/Guyette                  |
+| Sept. 5 – Sept. 12  | (Labor Day Mon 7)               |
+| Sept. 12 – Sept. 19 |                                 |
+| Sept. 19 – Sept. 26 |                                 |
+| Sept. 26 – Oct. 3   |                                 |
+| Oct. 10–12          | Indigenous People's Day Weekend |
+| Oct. 18             | Camp Closing (tentative)        |
 
 ## Board of Directors
 

@@ -143,9 +143,7 @@ export const remove = mutation({
     if (args.userId === me._id) {
       throw new Error("You cannot delete yourself")
     }
-    const sessions = await ctx.db
-      .query("sessions")
-      .take(2000)
+    const sessions = await ctx.db.query("sessions").take(2000)
     for (const s of sessions) {
       if (s.userId === args.userId) await ctx.db.delete(s._id)
     }
