@@ -49,6 +49,31 @@ export const create = mutation({
   },
 })
 
+export const update = mutation({
+  args: {
+    token: v.union(v.string(), v.null()),
+    id: v.id("reservations"),
+    familyId: v.id("families"),
+    startDate: v.string(),
+    endDate: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireUser(ctx, args.token)
+    if (!DATE_RE.test(args.startDate) || !DATE_RE.test(args.endDate)) {
+      throw new Error("Invalid date format")
+    }
+    if (args.endDate < args.startDate) {
+      throw new Error("End date must be on or after start date")
+    }
+    await ctx.db.patch(args.id, {
+      familyId: args.familyId,
+      startDate: args.startDate,
+      endDate: args.endDate,
+    })
+    return null
+  },
+})
+
 export const remove = mutation({
   args: {
     token: v.union(v.string(), v.null()),

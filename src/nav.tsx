@@ -23,11 +23,17 @@ export function Nav() {
           <NavLink to="/gallery" className={linkClass}>
             Gallery
           </NavLink>
+          <NavLink to="/store" className={linkClass}>
+            Store
+          </NavLink>
           <NavLink to="/handbook" className={linkClass}>
             Handbook
           </NavLink>
-          <NavLink to="/store" className={linkClass}>
-            Store
+          <NavLink to="/documents" className={linkClass}>
+            Documents
+          </NavLink>
+          <NavLink to="/expenses" className={linkClass}>
+            Expenses
           </NavLink>
         </>
       )}

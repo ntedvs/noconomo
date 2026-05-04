@@ -135,3 +135,12 @@ export async function requireUser(
   if (!user) throw new Error("Not authenticated")
   return user
 }
+
+export async function requireAdmin(
+  ctx: QueryCtx,
+  token: string | null,
+): Promise<Doc<"users">> {
+  const user = await requireUser(ctx, token)
+  if (!user.admin) throw new Error("Admin required")
+  return user
+}

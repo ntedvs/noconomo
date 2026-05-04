@@ -9,9 +9,12 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as documents from "../documents.js";
 import type * as email from "../email.js";
 import type * as events from "../events.js";
+import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
+import type * as handbook from "../handbook.js";
 import type * as images from "../images.js";
 import type * as reservations from "../reservations.js";
 import type * as users from "../users.js";
@@ -24,9 +27,12 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  documents: typeof documents;
   email: typeof email;
   events: typeof events;
+  expenses: typeof expenses;
   families: typeof families;
+  handbook: typeof handbook;
   images: typeof images;
   reservations: typeof reservations;
   users: typeof users;

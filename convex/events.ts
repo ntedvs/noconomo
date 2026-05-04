@@ -43,16 +43,30 @@ export const create = mutation({
   },
 })
 
+export const update = mutation({
+  args: {
+    token: v.union(v.string(), v.null()),
+    id: v.id("events"),
+    date: v.string(),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireUser(ctx, args.token)
+    if (!DATE_RE.test(args.date)) throw new Error("Invalid date format")
+    const title = args.title.trim()
+    if (!title) throw new Error("Title required")
+    await ctx.db.patch(args.id, { date: args.date, title })
+    return null
+  },
+})
+
 export const remove = mutation({
   args: {
     token: v.union(v.string(), v.null()),
     id: v.id("events"),
   },
   handler: async (ctx, args) => {
-    const user = await requireUser(ctx, args.token)
-    const ev = await ctx.db.get(args.id)
-    if (!ev) return null
-    if (ev.createdBy !== user._id) throw new Error("Not allowed")
+    await requireUser(ctx, args.token)
     await ctx.db.delete(args.id)
     return null
   },

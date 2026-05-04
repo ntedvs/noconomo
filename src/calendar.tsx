@@ -60,6 +60,8 @@ export default function Calendar() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [view, setView] = useState<View>("month")
   const [showForm, setShowForm] = useState(false)
+  const [editing, setEditing] = useState<Reservation | null>(null)
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null)
 
   const reservations = useQuery(api.reservations.list, { token }) ?? []
   const families = useQuery(api.families.list, { token }) ?? []
@@ -115,7 +117,7 @@ export default function Calendar() {
             onClick={() => setShowForm((s) => !s)}
             className="flex items-center gap-1 rounded bg-gray-900 px-2 py-1 text-xs text-white"
           >
-            <Plus weight="bold" /> New
+            <Plus weight="bold" /> Add Reservation
           </button>
           <button
             onClick={() => setMonth((m) => addMonths(m, 1))}
@@ -128,6 +130,21 @@ export default function Calendar() {
 
       {showForm && (
         <NewItemForm families={families} onClose={() => setShowForm(false)} />
+      )}
+
+      {editing && (
+        <EditReservationModal
+          reservation={editing}
+          families={families}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
+      {editingEvent && (
+        <EditEventModal
+          event={editingEvent}
+          onClose={() => setEditingEvent(null)}
+        />
       )}
 
       {view === "list" ? (
@@ -145,6 +162,8 @@ export default function Calendar() {
               compact={view === "three"}
               reservations={reservations}
               events={events}
+              onEditReservation={setEditing}
+              onEditEvent={setEditingEvent}
             />
           ))}
         </div>
@@ -162,11 +181,15 @@ function MonthGrid({
   compact,
   reservations,
   events,
+  onEditReservation,
+  onEditEvent,
 }: {
   month: Date
   compact: boolean
   reservations: Reservation[]
   events: EventItem[]
+  onEditReservation: (r: Reservation) => void
+  onEditEvent: (e: EventItem) => void
 }) {
   const gridStart = startOfWeek(startOfMonth(month))
   const gridEnd = endOfWeek(endOfMonth(month))
@@ -191,39 +214,45 @@ function MonthGrid({
         {days.map((day) => {
           const inMonth = isSameMonth(day, month)
           const iso = fmt(day)
-          const todays = reservationsOnDay(reservations, iso)
-          const dayEvents = events.filter((e) => e.date === iso)
+          const todays = inMonth ? reservationsOnDay(reservations, iso) : []
+          const dayEvents = inMonth ? events.filter((e) => e.date === iso) : []
           return (
             <div
               key={iso}
-              className={`relative bg-white ${compact ? "min-h-12 p-1 text-xs" : "min-h-24 p-1.5"} ${inMonth ? "text-gray-900" : "text-gray-400"}`}
+              className={`relative bg-white text-gray-900 ${compact ? "min-h-12 p-1 text-xs" : "min-h-24 p-1.5"}`}
             >
-              <div
-                className={
-                  isToday(day) ? "font-bold text-blue-600" : "font-normal"
-                }
-              >
-                {format(day, "d")}
-              </div>
+              {inMonth && (
+                <div
+                  className={
+                    isToday(day) ? "font-bold text-blue-600" : "font-normal"
+                  }
+                >
+                  {format(day, "d")}
+                </div>
+              )}
               <div className="mt-1 flex flex-col gap-0.5">
                 {todays.map((r) => (
-                  <div
+                  <button
                     key={r._id}
-                    title={`${r.familyName} (${r.startDate} – ${r.endDate})`}
-                    className={`truncate rounded px-1 text-white ${compact ? "text-[9px] leading-tight" : "text-[10px]"}`}
+                    type="button"
+                    onClick={() => onEditReservation(r)}
+                    title={`Edit ${r.familyName} (${r.startDate} – ${r.endDate})`}
+                    className={`truncate rounded px-1 text-left text-white hover:opacity-90 ${compact ? "text-[9px] leading-tight" : "text-[10px]"}`}
                     style={{ backgroundColor: r.color }}
                   >
                     {compact ? "•" : r.familyName}
-                  </div>
+                  </button>
                 ))}
                 {dayEvents.map((e) => (
-                  <div
+                  <button
                     key={e._id}
-                    title={`${e.title} — added by ${e.createdByName}`}
-                    className={`truncate rounded border border-gray-700 bg-gray-800 px-1 text-white ${compact ? "text-[9px] leading-tight" : "text-[10px]"}`}
+                    type="button"
+                    onClick={() => onEditEvent(e)}
+                    title={`Edit ${e.title} (added by ${e.createdByName})`}
+                    className={`truncate rounded border border-gray-700 bg-gray-800 px-1 text-left text-white hover:opacity-90 ${compact ? "text-[9px] leading-tight" : "text-[10px]"}`}
                   >
                     {compact ? "▪" : e.title}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -585,5 +614,326 @@ function EventFields({ onClose }: { onClose: () => void }) {
         </button>
       </div>
     </form>
+  )
+}
+
+function EditReservationModal({
+  reservation,
+  families,
+  onClose,
+}: {
+  reservation: Reservation
+  families: Family[]
+  onClose: () => void
+}) {
+  const { token } = useAuth()
+  const updateReservation = useMutation(api.reservations.update)
+  const removeReservation = useMutation(api.reservations.remove)
+  const [familyId, setFamilyId] = useState<Id<"families">>(reservation.familyId)
+  const [startDate, setStartDate] = useState(reservation.startDate)
+  const [endDate, setEndDate] = useState(reservation.endDate)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const dirty =
+    familyId !== reservation.familyId ||
+    startDate !== reservation.startDate ||
+    endDate !== reservation.endDate
+
+  async function doSave() {
+    setError(null)
+    setBusy(true)
+    try {
+      await updateReservation({
+        token,
+        id: reservation._id,
+        familyId,
+        startDate,
+        endDate,
+      })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function doDelete() {
+    setError(null)
+    setBusy(true)
+    try {
+      await removeReservation({ token, id: reservation._id })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed")
+      setConfirmDelete(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded bg-white p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold">Edit Reservation</h3>
+          <button onClick={onClose} aria-label="Close">
+            <X />
+          </button>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex flex-col text-xs sm:col-span-2">
+            <span className="mb-1 font-medium">Family</span>
+            <select
+              value={familyId}
+              onChange={(e) => setFamilyId(e.target.value as Id<"families">)}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+            >
+              {families.map((f) => (
+                <option key={f._id} value={f._id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-xs">
+            <span className="mb-1 font-medium">Start</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="flex flex-col text-xs">
+            <span className="mb-1 font-medium">End</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+            />
+          </label>
+        </div>
+
+        {error && <div className="mt-2 text-xs text-red-600">{error}</div>}
+
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+          >
+            Delete
+          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border border-gray-300 px-3 py-1 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={!dirty || busy}
+              onClick={doSave}
+              className="rounded bg-gray-900 px-3 py-1 text-sm text-white disabled:opacity-50"
+            >
+              {busy ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => !busy && setConfirmDelete(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded bg-white p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 className="mb-2 font-semibold">Delete this?</h4>
+            <p className="mb-4 text-sm text-gray-700">
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={busy}
+                className="rounded border border-gray-300 px-3 py-1 text-sm"
+              >
+                No
+              </button>
+              <button
+                onClick={doDelete}
+                disabled={busy}
+                className="rounded bg-red-600 px-3 py-1 text-sm text-white disabled:opacity-50"
+              >
+                {busy ? "Working…" : "Yes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EditEventModal({
+  event,
+  onClose,
+}: {
+  event: EventItem
+  onClose: () => void
+}) {
+  const { token } = useAuth()
+  const updateEvent = useMutation(api.events.update)
+  const removeEvent = useMutation(api.events.remove)
+  const [date, setDate] = useState(event.date)
+  const [title, setTitle] = useState(event.title)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const dirty = date !== event.date || title !== event.title
+
+  async function doSave() {
+    setError(null)
+    setBusy(true)
+    try {
+      await updateEvent({ token, id: event._id, date, title })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function doDelete() {
+    setError(null)
+    setBusy(true)
+    try {
+      await removeEvent({ token, id: event._id })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed")
+      setConfirmDelete(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded bg-white p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold">Edit Event</h3>
+          <button onClick={onClose} aria-label="Close">
+            <X />
+          </button>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex flex-col text-xs sm:col-span-2">
+            <span className="mb-1 font-medium">Title</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="flex flex-col text-xs">
+            <span className="mb-1 font-medium">Date</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+            />
+          </label>
+        </div>
+
+        {error && <div className="mt-2 text-xs text-red-600">{error}</div>}
+
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+          >
+            Delete
+          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border border-gray-300 px-3 py-1 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={!dirty || busy || !title.trim()}
+              onClick={doSave}
+              className="rounded bg-gray-900 px-3 py-1 text-sm text-white disabled:opacity-50"
+            >
+              {busy ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => !busy && setConfirmDelete(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded bg-white p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 className="mb-2 font-semibold">Delete this event?</h4>
+            <p className="mb-4 text-sm text-gray-700">
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={busy}
+                className="rounded border border-gray-300 px-3 py-1 text-sm"
+              >
+                No
+              </button>
+              <button
+                onClick={doDelete}
+                disabled={busy}
+                className="rounded bg-red-600 px-3 py-1 text-sm text-white disabled:opacity-50"
+              >
+                {busy ? "Working…" : "Yes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

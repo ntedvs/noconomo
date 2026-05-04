@@ -4,12 +4,16 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter, Routes, Route, Outlet } from "react-router"
 import "./index.css"
 import App from "./app.tsx"
+import Admin from "./admin"
 import { AuthProvider, RequireAuth } from "./auth"
 import Calendar from "./calendar"
+import Documents from "./documents"
+import Expenses from "./expenses"
 import Gallery from "./gallery"
 import Handbook from "./handbook"
 import Members from "./members"
 import { Nav } from "./nav"
+import NotFound from "./not-found"
 import Store from "./store"
 
 function Layout() {
@@ -56,6 +60,14 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
+                path="/store"
+                element={
+                  <RequireAuth>
+                    <Store />
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/handbook"
                 element={
                   <RequireAuth>
@@ -64,13 +76,30 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
-                path="/store"
+                path="/documents"
                 element={
                   <RequireAuth>
-                    <Store />
+                    <Documents />
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/expenses"
+                element={
+                  <RequireAuth>
+                    <Expenses />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAuth>
+                    <Admin />
+                  </RequireAuth>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </BrowserRouter>
