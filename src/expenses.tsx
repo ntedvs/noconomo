@@ -1,7 +1,7 @@
-import { FilePlusIcon, PlusIcon, TrashIcon, XIcon } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { format } from "date-fns"
-import { useState } from "react"
+import { FilePlus2, Paperclip, Plus, Trash2, X } from "lucide-react"
+import { useEffect, useState, type ReactNode } from "react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
@@ -31,6 +31,17 @@ const fmtUSD = new Intl.NumberFormat("en-US", {
   currency: "USD",
 })
 
+const inputCls =
+  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
+const labelCls =
+  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+const btnPrimary =
+  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+const btnSecondary =
+  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+const btnDanger =
+  "inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-[13px] font-medium text-red-700 hover:bg-red-50"
+
 function splitFileName(name: string): { base: string; ext: string } {
   const idx = name.lastIndexOf(".")
   if (idx <= 0 || idx === name.length - 1) return { base: name, ext: "" }
@@ -50,83 +61,125 @@ export default function Expenses() {
   )
 
   return (
-    <div className="p-4">
-      <header className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Expenses</h2>
-        <button
-          onClick={() => setAdding(true)}
-          className="inline-flex items-center gap-1 rounded border px-3 py-1 hover:bg-gray-50"
-        >
-          <PlusIcon weight="bold" />
-          Add Expense
+    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      {/* Header */}
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
+            Ledger
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            Expenses
+          </h1>
+          <p className="mt-2 text-[13px] text-neutral-500">
+            {items === undefined ? (
+              "Loading…"
+            ) : (
+              <>
+                <span className="text-neutral-700">{items.length}</span> entr
+                {items.length === 1 ? "y" : "ies"}
+              </>
+            )}
+          </p>
+        </div>
+
+        <button onClick={() => setAdding(true)} className={btnPrimary}>
+          <Plus size={14} /> Add expense
         </button>
       </header>
 
-      {items === undefined ? (
-        <div>Loading…</div>
-      ) : items.length === 0 ? (
-        <div className="text-gray-500">No expenses yet.</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50 text-left">
-                <th className="border px-2 py-1">Item</th>
-                <th className="border px-2 py-1">Cost</th>
-                <th className="border px-2 py-1">Notes</th>
-                <th className="border px-2 py-1">Files</th>
-                <th className="border px-2 py-1">Added by</th>
-                <th className="border px-2 py-1">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(items as Expense[]).map((e) => (
-                <tr
-                  key={e._id}
-                  onClick={() => setEditing(e)}
-                  className="cursor-pointer align-top hover:bg-gray-50"
-                >
-                  <td className="border px-2 py-1 font-medium">{e.item}</td>
-                  <td className="border px-2 py-1 whitespace-nowrap">
-                    {fmtUSD.format(e.cost)}
-                  </td>
-                  <td className="border px-2 py-1">{e.notes ?? ""}</td>
-                  <td className="border px-2 py-1">
-                    {e.attachments.length > 0 && (
-                      <div className="flex flex-col items-start gap-0.5">
-                        {e.attachments.map((a) => (
-                          <a
-                            key={a.storageId}
-                            href={a.url ?? "#"}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(ev) => ev.stopPropagation()}
-                            className="w-fit text-blue-600 hover:underline"
-                          >
-                            {a.fileName}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                  <td className="border px-2 py-1">{e.createdByName}</td>
-                  <td className="border px-2 py-1 whitespace-nowrap">
-                    {format(new Date(e._creationTime), "MMM d, yyyy")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="bg-gray-50 font-medium">
-                <td className="border px-2 py-1">Total</td>
-                <td className="border px-2 py-1 whitespace-nowrap">
-                  {fmtUSD.format(total ?? 0)}
-                </td>
-                <td className="border px-2 py-1" colSpan={4}></td>
-              </tr>
-            </tfoot>
-          </table>
+      {/* Total card */}
+      {items && items.length > 0 && (
+        <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-3">
+          <Stat label="Total" value={fmtUSD.format(total ?? 0)} prominent />
+          <Stat label="Entries" value={String(items.length)} />
+          <Stat
+            label="Average"
+            value={
+              items.length ? fmtUSD.format((total ?? 0) / items.length) : "—"
+            }
+          />
         </div>
+      )}
+
+      {/* List */}
+      {items === undefined ? (
+        <ListSkeleton />
+      ) : items.length === 0 ? (
+        <button
+          onClick={() => setAdding(true)}
+          className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
+        >
+          <Plus size={24} strokeWidth={1.5} className="text-neutral-400" />
+          <div>
+            <div className="text-[14px] font-medium text-neutral-800">
+              No expenses yet
+            </div>
+            <div className="mt-1 text-[12px] text-neutral-500">
+              Click to record your first expense.
+            </div>
+          </div>
+        </button>
+      ) : (
+        <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+          {(items as Expense[]).map((e, i) => (
+            <li
+              key={e._id}
+              onClick={() => setEditing(e)}
+              className={[
+                "grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
+                i > 0 ? "border-t border-[var(--color-border)]" : "",
+              ].join(" ")}
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[14px] font-medium text-black">
+                    {e.item}
+                  </span>
+                  {e.attachments.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-1.5 py-px font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
+                      <Paperclip size={10} />
+                      {e.attachments.length}
+                    </span>
+                  )}
+                </div>
+                {e.notes && (
+                  <div className="mt-1 truncate text-[12px] text-neutral-600">
+                    {e.notes}
+                  </div>
+                )}
+                {e.attachments.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {e.attachments.map((a) => (
+                      <a
+                        key={a.storageId}
+                        href={a.url ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(ev) => ev.stopPropagation()}
+                        className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700 hover:bg-neutral-200"
+                      >
+                        <Paperclip size={10} className="shrink-0" />
+                        <span className="truncate">{a.fileName}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col items-end gap-0.5 whitespace-nowrap">
+                <span className="font-mono text-[14px] font-semibold text-black tabular-nums">
+                  {fmtUSD.format(e.cost)}
+                </span>
+                <span className="text-[11px] text-neutral-500">
+                  {format(new Date(e._creationTime), "MMM d, yyyy")}
+                  <span className="mx-1 text-neutral-300">·</span>
+                  {e.createdByName}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       {adding && <ExpenseModal mode="add" onClose={() => setAdding(false)} />}
@@ -137,9 +190,126 @@ export default function Expenses() {
           onClose={() => setEditing(null)}
         />
       )}
+    </main>
+  )
+}
+
+function Stat({
+  label,
+  value,
+  prominent,
+}: {
+  label: string
+  value: string
+  prominent?: boolean
+}) {
+  return (
+    <div className="bg-white px-4 py-3.5">
+      <div className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase">
+        {label}
+      </div>
+      <div
+        className={[
+          "mt-1 font-mono tabular-nums text-black",
+          prominent ? "text-2xl font-semibold tracking-tight" : "text-lg",
+        ].join(" ")}
+      >
+        {value}
+      </div>
     </div>
   )
 }
+
+function ListSkeleton() {
+  return (
+    <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+      {[0, 1, 2].map((i) => (
+        <li
+          key={i}
+          className={`grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 ${
+            i > 0 ? "border-t border-[var(--color-border)]" : ""
+          }`}
+        >
+          <div className="space-y-2">
+            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-neutral-100" />
+            <span className="block h-3 w-1/2 animate-pulse rounded bg-neutral-100" />
+          </div>
+          <span className="block h-4 w-20 animate-pulse rounded bg-neutral-100" />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/* ---------- Modal ---------- */
+
+function Modal({
+  title,
+  onClose,
+  children,
+  maxWidth = "md",
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  maxWidth?: "sm" | "md"
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`w-full ${
+          maxWidth === "sm" ? "max-w-sm" : "max-w-md"
+        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
+          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+          >
+            <X size={16} />
+          </button>
+        </header>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className={labelCls}>{label}</span>
+      {children}
+    </label>
+  )
+}
+
+function ErrorMsg({ children }: { children: ReactNode }) {
+  if (!children) return null
+  return (
+    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+      {children}
+    </p>
+  )
+}
+
+/* ---------- Add / Edit ---------- */
 
 function ExpenseModal(
   props:
@@ -222,138 +392,99 @@ function ExpenseModal(
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onClick={props.onClose}
-    >
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md rounded bg-white p-4"
-        onClick={(e) => e.stopPropagation()}
+    <>
+      <Modal
+        title={props.mode === "add" ? "Add expense" : "Edit expense"}
+        onClose={props.onClose}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">
-            {props.mode === "add" ? "Add expense" : "Edit expense"}
-          </h3>
-          <button
-            type="button"
-            onClick={props.onClose}
-            aria-label="Close"
-            className="p-1"
-          >
-            <XIcon weight="bold" />
-          </button>
-        </div>
-        <div className="grid grid-cols-1 gap-2">
-          <label className="flex flex-col text-xs">
-            <span className="mb-1 font-medium">Item</span>
+        <form onSubmit={submit} className="flex flex-col gap-3">
+          <Field label="Item">
             <input
               value={item}
               onChange={(e) => setItem(e.target.value)}
               required
-              className="rounded border px-2 py-1 text-sm"
+              autoFocus
+              className={inputCls}
             />
-          </label>
-          <label className="flex flex-col text-xs">
-            <span className="mb-1 font-medium">Cost (USD)</span>
-            <input
-              type="number"
-              step="0.01"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              required
-              className="rounded border px-2 py-1 text-sm"
-            />
-          </label>
-          <label className="flex flex-col text-xs">
-            <span className="mb-1 font-medium">Notes</span>
+          </Field>
+          <Field label="Cost (USD)">
+            <div className="relative">
+              <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 font-mono text-sm text-neutral-400">
+                $
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                required
+                className={`${inputCls} pl-6 font-mono tabular-nums`}
+                placeholder="0.00"
+              />
+            </div>
+          </Field>
+          <Field label="Notes">
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="rounded border px-2 py-1 text-sm"
+              className={`${inputCls} resize-none`}
             />
-          </label>
-          <div className="flex flex-col text-xs">
-            <span className="mb-1 font-medium">Files</span>
-            {existingAttachments.length > 0 && (
-              <ul className="mb-2 flex flex-col gap-1">
+          </Field>
+
+          <div className="flex flex-col gap-1.5">
+            <span className={labelCls}>Files</span>
+            {(existingAttachments.length > 0 || newFiles.length > 0) && (
+              <ul className="flex flex-col gap-1.5">
                 {existingAttachments.map((a) => {
                   const { base, ext } = splitFileName(a.fileName)
                   return (
-                    <li key={a.storageId} className="flex items-center gap-1">
-                      <input
-                        value={base}
-                        onChange={(e) =>
-                          setExistingAttachments((prev) =>
-                            prev.map((x) =>
-                              x.storageId === a.storageId
-                                ? { ...x, fileName: e.target.value + ext }
-                                : x,
-                            ),
-                          )
-                        }
-                        className="flex-1 rounded border px-2 py-1 text-sm"
-                      />
-                      {ext && (
-                        <span className="text-sm text-gray-500">{ext}</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExistingAttachments((prev) =>
-                            prev.filter((x) => x.storageId !== a.storageId),
-                          )
-                        }
-                        aria-label="Remove file"
-                        className="rounded p-1 text-red-600 hover:bg-red-50"
-                      >
-                        <TrashIcon />
-                      </button>
-                    </li>
+                    <FileRow
+                      key={a.storageId}
+                      base={base}
+                      ext={ext}
+                      onChangeBase={(v) =>
+                        setExistingAttachments((prev) =>
+                          prev.map((x) =>
+                            x.storageId === a.storageId
+                              ? { ...x, fileName: v + ext }
+                              : x,
+                          ),
+                        )
+                      }
+                      onRemove={() =>
+                        setExistingAttachments((prev) =>
+                          prev.filter((x) => x.storageId !== a.storageId),
+                        )
+                      }
+                    />
                   )
                 })}
-              </ul>
-            )}
-            {newFiles.length > 0 && (
-              <ul className="mb-2 flex flex-col gap-1">
                 {newFiles.map((nf, i) => {
                   const { base, ext } = splitFileName(nf.name)
                   return (
-                    <li key={i} className="flex items-center gap-1">
-                      <input
-                        value={base}
-                        onChange={(e) =>
-                          setNewFiles((prev) =>
-                            prev.map((x, j) =>
-                              j === i
-                                ? { ...x, name: e.target.value + ext }
-                                : x,
-                            ),
-                          )
-                        }
-                        className="flex-1 rounded border px-2 py-1 text-sm"
-                      />
-                      {ext && (
-                        <span className="text-sm text-gray-500">{ext}</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setNewFiles((prev) => prev.filter((_, j) => j !== i))
-                        }
-                        aria-label="Remove file"
-                        className="rounded p-1 text-red-600 hover:bg-red-50"
-                      >
-                        <TrashIcon />
-                      </button>
-                    </li>
+                    <FileRow
+                      key={`new-${i}`}
+                      base={base}
+                      ext={ext}
+                      isNew
+                      onChangeBase={(v) =>
+                        setNewFiles((prev) =>
+                          prev.map((x, j) =>
+                            j === i ? { ...x, name: v + ext } : x,
+                          ),
+                        )
+                      }
+                      onRemove={() =>
+                        setNewFiles((prev) => prev.filter((_, j) => j !== i))
+                      }
+                    />
                   )
                 })}
               </ul>
             )}
-            <label className="inline-flex w-fit cursor-pointer items-center gap-1 rounded border px-3 py-1 text-sm hover:bg-gray-50">
-              <FilePlusIcon weight="bold" />
+            <label className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[var(--color-border)] px-3 py-1.5 text-[12px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-black">
+              <FilePlus2 size={13} />
               Add files
               <input
                 type="file"
@@ -371,87 +502,118 @@ function ExpenseModal(
               />
             </label>
           </div>
-        </div>
-        {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <div>
-            {props.mode === "edit" && (
+
+          <ErrorMsg>{err}</ErrorMsg>
+
+          <footer className="mt-2 flex items-center justify-between gap-2">
+            <div>
+              {props.mode === "edit" && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  className={btnDanger}
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(true)}
-                className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+                onClick={props.onClose}
+                className={btnSecondary}
               >
-                Delete
+                Cancel
               </button>
-            )}
-          </div>
-          <div className="flex gap-2">
+              <button type="submit" disabled={busy} className={btnPrimary}>
+                {busy ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </footer>
+        </form>
+      </Modal>
+
+      {confirmDelete && props.mode === "edit" && (
+        <Modal
+          title="Delete this expense?"
+          onClose={() => !busy && setConfirmDelete(false)}
+          maxWidth="sm"
+        >
+          <p className="text-[13px] text-neutral-600">
+            This action cannot be undone.
+          </p>
+          <footer className="mt-5 flex justify-end gap-2">
             <button
               type="button"
-              onClick={props.onClose}
-              className="rounded border px-3 py-1 text-sm"
+              onClick={() => setConfirmDelete(false)}
+              disabled={busy}
+              className={btnSecondary}
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={async () => {
+                setBusy(true)
+                try {
+                  await remove({ token, id: props.expense._id })
+                  props.onClose()
+                } catch (e) {
+                  setErr(e instanceof Error ? e.message : String(e))
+                  setConfirmDelete(false)
+                } finally {
+                  setBusy(false)
+                }
+              }}
               disabled={busy}
-              className="rounded bg-gray-900 px-3 py-1 text-sm text-white disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
             >
-              {busy ? "Saving…" : "Save"}
+              {busy ? "Deleting…" : "Delete"}
             </button>
-          </div>
-        </div>
+          </footer>
+        </Modal>
+      )}
+    </>
+  )
+}
 
-        {confirmDelete && props.mode === "edit" && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (!busy) setConfirmDelete(false)
-            }}
-          >
-            <div
-              className="w-full max-w-sm rounded bg-white p-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h4 className="mb-2 font-semibold">Delete this expense?</h4>
-              <p className="mb-4 text-sm text-gray-700">
-                This action cannot be undone.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(false)}
-                  disabled={busy}
-                  className="rounded border px-3 py-1 text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setBusy(true)
-                    try {
-                      await remove({ token, id: props.expense._id })
-                      props.onClose()
-                    } catch (e) {
-                      setErr(e instanceof Error ? e.message : String(e))
-                      setConfirmDelete(false)
-                    } finally {
-                      setBusy(false)
-                    }
-                  }}
-                  disabled={busy}
-                  className="rounded bg-red-600 px-3 py-1 text-sm text-white disabled:opacity-50"
-                >
-                  {busy ? "Deleting…" : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </form>
-    </div>
+function FileRow({
+  base,
+  ext,
+  isNew,
+  onChangeBase,
+  onRemove,
+}: {
+  base: string
+  ext: string
+  isNew?: boolean
+  onChangeBase: (v: string) => void
+  onRemove: () => void
+}) {
+  return (
+    <li className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white pl-2.5">
+      <Paperclip size={12} className="shrink-0 text-neutral-400" />
+      <input
+        value={base}
+        onChange={(e) => onChangeBase(e.target.value)}
+        className="flex-1 border-0 bg-transparent py-1.5 text-sm focus:outline-none"
+      />
+      {ext && (
+        <span className="font-mono text-[11px] text-neutral-500">{ext}</span>
+      )}
+      {isNew && (
+        <span className="rounded-full bg-neutral-100 px-1.5 py-px text-[10px] font-medium tracking-wide text-neutral-600 uppercase">
+          New
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Remove file"
+        className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
+      >
+        <Trash2 size={13} />
+      </button>
+    </li>
   )
 }

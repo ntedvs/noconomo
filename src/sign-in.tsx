@@ -28,28 +28,99 @@ export function SignIn() {
   }
 
   return (
-    <form onSubmit={submit}>
-      {step === "email" ? (
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      ) : (
-        <input
-          type="text"
-          placeholder="6-digit code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          required
-        />
-      )}
-      <button type="submit" disabled={busy}>
-        {step === "email" ? "Send code" : "Verify"}
-      </button>
-      {err && <p>{err}</p>}
-    </form>
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--color-bg-subtle)] px-4 py-16">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div
+            aria-hidden
+            className="mx-auto mb-5 inline-block h-7 w-7 rotate-45 bg-black"
+          />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Sign in to Noconomo
+          </h1>
+          <p className="mt-2 text-[13px] text-neutral-500">
+            {step === "email"
+              ? "Enter your email to receive a verification code."
+              : `We sent a 6-digit code to ${email}.`}
+          </p>
+        </div>
+
+        <form
+          onSubmit={submit}
+          className="rounded-lg border border-[var(--color-border)] bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+        >
+          {step === "email" ? (
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-medium text-neutral-700">
+                Email
+              </span>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+                className="w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+              />
+            </label>
+          ) : (
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-medium text-neutral-700">
+                Verification code
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="000000"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+                autoFocus
+                maxLength={6}
+                className="w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-center font-mono text-lg tracking-[0.5em]"
+              />
+            </label>
+          )}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="mt-4 w-full rounded-md bg-black px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          >
+            {busy
+              ? "Working…"
+              : step === "email"
+                ? "Continue with email"
+                : "Verify"}
+          </button>
+
+          {step === "code" && (
+            <button
+              type="button"
+              onClick={() => {
+                setStep("email")
+                setCode("")
+                setErr(null)
+              }}
+              className="mt-2 w-full rounded-md px-3 py-2 text-[13px] text-neutral-500 hover:text-black"
+            >
+              Use a different email
+            </button>
+          )}
+
+          {err && (
+            <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+              {err}
+            </p>
+          )}
+        </form>
+
+        <p className="mt-6 text-center text-[12px] text-neutral-500">
+          Members only. Contact an admin if you need access.
+        </p>
+      </div>
+    </div>
   )
 }

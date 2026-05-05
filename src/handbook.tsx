@@ -12,8 +12,8 @@ export default function Handbook() {
       : (stored as HandbookContent)
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Handbook</h1>
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <h1 className="text-3xl font-semibold tracking-tight">Handbook</h1>
       <h2 className="mt-4 text-xl font-semibold">Address</h2>
       <p>{c.address}</p>
       <h2 className="mt-4 text-xl font-semibold">Phone Number</h2>

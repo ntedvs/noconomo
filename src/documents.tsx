@@ -1,13 +1,20 @@
-import {
-  FilePlusIcon,
-  PencilSimpleIcon,
-  TrashIcon,
-  UploadSimpleIcon,
-  XIcon,
-} from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { format } from "date-fns"
-import { useEffect, useState } from "react"
+import {
+  FileArchive,
+  FileAudio,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FileVideo,
+  File as FileIcon,
+  Pencil,
+  Trash2,
+  Upload,
+  UploadCloud,
+  X,
+} from "lucide-react"
+import { useEffect, useState, type ReactNode } from "react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
@@ -26,6 +33,42 @@ type DocItem = {
   _creationTime: number
 }
 
+const inputCls =
+  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
+const labelCls =
+  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+const btnPrimary =
+  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+const btnSecondary =
+  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+
+function formatBytes(n?: number): string {
+  if (n === undefined || n === null) return ""
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`
+  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`
+}
+
+function fileExt(name?: string) {
+  if (!name) return ""
+  const m = /\.([^.]+)$/.exec(name)
+  return m ? m[1].toLowerCase() : ""
+}
+
+function iconFor(d: DocItem) {
+  const ct = d.contentType ?? ""
+  const ext = fileExt(d.fileName)
+  if (ct.startsWith("image/")) return FileImage
+  if (ct.startsWith("video/")) return FileVideo
+  if (ct.startsWith("audio/")) return FileAudio
+  if (ct === "application/pdf" || ext === "pdf") return FileText
+  if (["doc", "docx", "rtf", "txt", "md"].includes(ext)) return FileText
+  if (["xls", "xlsx", "csv", "tsv"].includes(ext)) return FileSpreadsheet
+  if (["zip", "tar", "gz", "rar", "7z"].includes(ext)) return FileArchive
+  return FileIcon
+}
+
 export default function Documents() {
   useTitle("Documents")
   const { token, user } = useAuth()
@@ -36,84 +79,131 @@ export default function Documents() {
   const [renaming, setRenaming] = useState<DocItem | null>(null)
 
   return (
-    <div className="p-4">
-      <header className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Documents</h2>
-        <button
-          onClick={() => setUploadOpen(true)}
-          className="inline-flex items-center gap-1 rounded border px-3 py-1 hover:bg-gray-50"
-        >
-          <UploadSimpleIcon weight="bold" />
-          Upload
+    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      {/* Header */}
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
+            Files
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            Documents
+          </h1>
+          <p className="mt-2 text-[13px] text-neutral-500">
+            {items === undefined ? (
+              "Loading…"
+            ) : (
+              <>
+                <span className="text-neutral-700">{items.length}</span>{" "}
+                document{items.length === 1 ? "" : "s"}
+              </>
+            )}
+          </p>
+        </div>
+
+        <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
+          <Upload size={14} /> Upload
         </button>
       </header>
 
+      {/* List */}
       {items === undefined ? (
-        <div>Loading…</div>
+        <ListSkeleton />
       ) : items.length === 0 ? (
-        <div className="text-gray-500">No documents yet.</div>
+        <button
+          onClick={() => setUploadOpen(true)}
+          className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
+        >
+          <UploadCloud
+            size={28}
+            strokeWidth={1.5}
+            className="text-neutral-400"
+          />
+          <div>
+            <div className="text-[14px] font-medium text-neutral-800">
+              No documents yet
+            </div>
+            <div className="mt-1 text-[12px] text-neutral-500">
+              Click to upload your first file.
+            </div>
+          </div>
+        </button>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50 text-left">
-                <th className="border px-2 py-1">File</th>
-                <th className="border px-2 py-1">Uploader</th>
-                <th className="border px-2 py-1">Uploaded</th>
-                <th className="border px-2 py-1">Notes</th>
-                <th className="border px-2 py-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(items as DocItem[]).map((d) => {
-                const canEdit = user?._id === d.uploadedBy
-                return (
-                  <tr key={d._id} className="align-top">
-                    <td className="border px-2 py-1 font-medium">
-                      {d.url ? (
-                        <a
-                          href={d.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {d.title}
-                        </a>
-                      ) : (
-                        d.title
-                      )}
-                    </td>
-                    <td className="border px-2 py-1">{d.uploaderName}</td>
-                    <td className="border px-2 py-1 whitespace-nowrap">
-                      {format(new Date(d._creationTime), "MMM d, yyyy h:mm a")}
-                    </td>
-                    <td className="border px-2 py-1">{d.notes ?? ""}</td>
-                    <td className="border px-2 py-1 whitespace-nowrap">
-                      {canEdit && (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setRenaming(d)}
-                            className="rounded p-1 hover:bg-gray-100"
-                            aria-label="Rename"
-                          >
-                            <PencilSimpleIcon />
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(d)}
-                            className="rounded p-1 hover:bg-gray-100"
-                            aria-label="Delete"
-                          >
-                            <TrashIcon />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+          {(items as DocItem[]).map((d, i) => {
+            const canEdit = user?._id === d.uploadedBy
+            const Icon = iconFor(d)
+            const ext = fileExt(d.fileName)
+            return (
+              <li
+                key={d._id}
+                className={[
+                  "group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
+                  i > 0 ? "border-t border-[var(--color-border)]" : "",
+                ].join(" ")}
+              >
+                <span className="grid h-10 w-10 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600">
+                  <Icon size={18} strokeWidth={1.5} />
+                </span>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    {d.url ? (
+                      <a
+                        href={d.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-[14px] font-medium text-black hover:underline"
+                      >
+                        {d.title}
+                      </a>
+                    ) : (
+                      <span className="truncate text-[14px] font-medium text-black">
+                        {d.title}
+                      </span>
+                    )}
+                    {ext && (
+                      <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
+                        {ext}
+                      </span>
+                    )}
+                  </div>
+                  <div className="truncate text-[12px] text-neutral-500">
+                    {d.uploaderName}
+                    <span className="mx-1.5 text-neutral-300">·</span>
+                    <span>
+                      {format(new Date(d._creationTime), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                  {d.notes && (
+                    <div className="mt-1 truncate text-[12px] text-neutral-600">
+                      {d.notes}
+                    </div>
+                  )}
+                </div>
+
+                {canEdit && (
+                  <div className="flex items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                    <button
+                      onClick={() => setRenaming(d)}
+                      aria-label="Edit"
+                      className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(d)}
+                      aria-label="Delete"
+                      className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
       )}
 
       {uploadOpen && (
@@ -129,7 +219,7 @@ export default function Documents() {
 
       {confirmDelete && (
         <ConfirmModal
-          title="Delete this document?"
+          title="Delete document?"
           message={`"${confirmDelete.title}" will be permanently removed.`}
           confirmLabel="Delete"
           onCancel={() => setConfirmDelete(null)}
@@ -139,19 +229,100 @@ export default function Documents() {
           }}
         />
       )}
+    </main>
+  )
+}
+
+function ListSkeleton() {
+  return (
+    <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+      {[0, 1, 2].map((i) => (
+        <li
+          key={i}
+          className={`grid grid-cols-[40px_1fr] items-center gap-4 px-4 py-3 ${
+            i > 0 ? "border-t border-[var(--color-border)]" : ""
+          }`}
+        >
+          <span className="h-10 w-10 animate-pulse rounded-md bg-neutral-100" />
+          <div className="space-y-2">
+            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-neutral-100" />
+            <span className="block h-3 w-1/2 animate-pulse rounded bg-neutral-100" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/* ---------- Shared modal ---------- */
+
+function Modal({
+  title,
+  onClose,
+  children,
+  maxWidth = "md",
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  maxWidth?: "sm" | "md"
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`w-full ${
+          maxWidth === "sm" ? "max-w-sm" : "max-w-md"
+        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
+          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+          >
+            <X size={16} />
+          </button>
+        </header>
+        <div className="p-5">{children}</div>
+      </div>
     </div>
   )
 }
 
-function useEscape(onEscape: () => void) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onEscape()
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [onEscape])
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className={labelCls}>{label}</span>
+      {children}
+    </label>
+  )
 }
+
+function ErrorMsg({ children }: { children: ReactNode }) {
+  if (!children) return null
+  return (
+    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+      {children}
+    </p>
+  )
+}
+
+/* ---------- Confirm ---------- */
 
 function ConfirmModal({
   title,
@@ -167,9 +338,6 @@ function ConfirmModal({
   onCancel: () => void
 }) {
   const [busy, setBusy] = useState(false)
-  useEscape(() => {
-    if (!busy) onCancel()
-  })
   const run = async () => {
     setBusy(true)
     try {
@@ -179,36 +347,25 @@ function ConfirmModal({
     }
   }
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      onClick={() => !busy && onCancel()}
-    >
-      <div
-        className="w-full max-w-sm rounded bg-white p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="mb-2 font-semibold">{title}</h3>
-        <p className="mb-4 text-sm text-gray-700">{message}</p>
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            disabled={busy}
-            className="rounded px-3 py-1 hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={run}
-            disabled={busy}
-            className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {busy ? "Deleting…" : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal title={title} onClose={() => !busy && onCancel()} maxWidth="sm">
+      <p className="text-[13px] text-neutral-600">{message}</p>
+      <footer className="mt-5 flex justify-end gap-2">
+        <button onClick={onCancel} disabled={busy} className={btnSecondary}>
+          Cancel
+        </button>
+        <button
+          onClick={run}
+          disabled={busy}
+          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {busy ? "Deleting…" : confirmLabel}
+        </button>
+      </footer>
+    </Modal>
   )
 }
+
+/* ---------- Rename ---------- */
 
 function RenameModal({ doc, onClose }: { doc: DocItem; onClose: () => void }) {
   const { token } = useAuth()
@@ -217,7 +374,6 @@ function RenameModal({ doc, onClose }: { doc: DocItem; onClose: () => void }) {
   const [notes, setNotes] = useState(doc.notes ?? "")
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
-  useEscape(onClose)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -234,61 +390,45 @@ function RenameModal({ doc, onClose }: { doc: DocItem; onClose: () => void }) {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-    >
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded bg-white p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">Edit document</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="p-1"
-          >
-            <XIcon weight="bold" />
-          </button>
-        </div>
-        <input
-          autoFocus
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          className="w-full rounded border px-2 py-1"
-        />
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notes (optional)"
-          rows={3}
-          className="mt-2 w-full rounded border px-2 py-1"
-        />
-        {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
-        <div className="mt-3 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded px-3 py-1 hover:bg-gray-100"
-          >
+    <Modal title="Edit document" onClose={onClose}>
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        <Field label="Title">
+          <input
+            autoFocus
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Optional"
+            rows={3}
+            className={`${inputCls} resize-none`}
+          />
+        </Field>
+        <ErrorMsg>{err}</ErrorMsg>
+        <footer className="mt-2 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={btnSecondary}>
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy || !title.trim()}
-            className="rounded bg-gray-900 px-3 py-1 text-white disabled:opacity-50"
+            className={btnPrimary}
           >
             {busy ? "Saving…" : "Save"}
           </button>
-        </div>
+        </footer>
       </form>
-    </div>
+    </Modal>
   )
 }
+
+/* ---------- Upload ---------- */
 
 function UploadModal({
   onClose,
@@ -305,7 +445,14 @@ function UploadModal({
   const [notes, setNotes] = useState("")
   const [uploading, setUploading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
-  useEscape(onClose)
+  const [dragging, setDragging] = useState(false)
+
+  const pickFile = (f: File | null) => {
+    setFile(f)
+    if (f && !title.trim()) {
+      setTitle(f.name.replace(/\.[^.]+$/, ""))
+    }
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -343,85 +490,97 @@ function UploadModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-    >
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md rounded bg-white p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">Upload document</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="p-1"
-          >
-            <XIcon weight="bold" />
-          </button>
-        </div>
-        <div className="flex flex-col gap-3">
+    <Modal title="Upload document" onClose={onClose}>
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        <label
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragging(true)
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setDragging(false)
+            const f = e.dataTransfer.files?.[0]
+            if (f) pickFile(f)
+          }}
+          className={[
+            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition-colors",
+            dragging
+              ? "border-black bg-[var(--color-bg-subtle)]"
+              : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:border-neutral-400 hover:bg-white",
+          ].join(" ")}
+        >
+          <UploadCloud
+            size={24}
+            strokeWidth={1.5}
+            className="text-neutral-400"
+          />
+          {file ? (
+            <>
+              <div className="text-[13px] font-medium text-black">
+                {file.name}
+              </div>
+              <div className="font-mono text-[11px] text-neutral-500 tabular-nums">
+                {formatBytes(file.size)}
+              </div>
+              <div className="mt-1 text-[11px] text-neutral-500">
+                Click to choose a different file
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-[13px] font-medium text-neutral-800">
+                Drop file here or click to browse
+              </div>
+              <div className="text-[11px] text-neutral-500">Any file type</div>
+            </>
+          )}
+          <input
+            type="file"
+            onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+            required
+            className="hidden"
+          />
+        </label>
+
+        <Field label="Title">
           <input
             type="text"
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="rounded border px-2 py-1"
+            className={inputCls}
           />
+        </Field>
+
+        <Field label="Notes">
           <textarea
-            placeholder="Notes (optional)"
+            placeholder="Optional"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className="rounded border px-2 py-1"
+            className={`${inputCls} resize-none`}
           />
-          <label className="flex items-center gap-2">
-            <span className="inline-flex cursor-pointer items-center gap-1 rounded border px-3 py-1 hover:bg-gray-50">
-              <FilePlusIcon weight="bold" />
-              {file ? "Change file" : "Choose file"}
-            </span>
-            <span
-              className={`truncate text-sm ${file ? "text-gray-800" : "text-gray-500"}`}
-            >
-              {file ? file.name : "No file chosen"}
-            </span>
-            <input
-              type="file"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null
-                setFile(f)
-                if (f && !title.trim()) {
-                  setTitle(f.name.replace(/\.[^.]+$/, ""))
-                }
-              }}
-              required
-              className="hidden"
-            />
-          </label>
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded px-3 py-1 hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!file || !title.trim() || uploading}
-              className="inline-flex items-center gap-1 rounded border px-3 py-1 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <UploadSimpleIcon weight="bold" />
-              {uploading ? "Uploading…" : "Upload"}
-            </button>
-          </div>
-        </div>
+        </Field>
+
+        <ErrorMsg>{err}</ErrorMsg>
+
+        <footer className="mt-2 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={btnSecondary}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!file || !title.trim() || uploading}
+            className={btnPrimary}
+          >
+            <Upload size={14} />
+            {uploading ? "Uploading…" : "Upload"}
+          </button>
+        </footer>
       </form>
-    </div>
+    </Modal>
   )
 }

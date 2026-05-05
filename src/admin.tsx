@@ -1,5 +1,6 @@
 import { TrashIcon } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
+import { ArrowDown, ArrowUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
@@ -72,10 +73,10 @@ export default function Admin() {
     setContent({ ...content, ...patch })
 
   return (
-    <div className="mx-auto max-w-4xl p-4">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin · Handbook</h1>
-        <div className="flex items-center gap-3">
+    <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-bold sm:text-2xl">Admin · Handbook</h1>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {msg && <span className="text-sm text-green-700">{msg}</span>}
           {err && <span className="text-sm text-red-600">{err}</span>}
           <button
@@ -281,19 +282,19 @@ function ListEditor<T>({
               type="button"
               onClick={() => move(i, -1)}
               disabled={i === 0}
-              className="rounded border px-1 disabled:opacity-30"
+              className="inline-flex items-center justify-center rounded border px-1 disabled:opacity-30"
               aria-label="Move up"
             >
-              ↑
+              <ArrowUp size={12} />
             </button>
             <button
               type="button"
               onClick={() => move(i, 1)}
               disabled={i === items.length - 1}
-              className="rounded border px-1 disabled:opacity-30"
+              className="inline-flex items-center justify-center rounded border px-1 disabled:opacity-30"
               aria-label="Move down"
             >
-              ↓
+              <ArrowDown size={12} />
             </button>
           </div>
           <div className="flex-1">{render(item, (next) => setAt(i, next))}</div>
