@@ -120,7 +120,7 @@ export function SignIn() {
         </form>
 
         <p className="mt-6 text-center text-[12px] text-neutral-500">
-          Members only. Contact an admin if you need access.
+          Members only. Contact Nathaniel Davis if you need access.
         </p>
       </div>
     </div>
