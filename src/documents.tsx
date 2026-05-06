@@ -1,19 +1,19 @@
-import { useMutation, useQuery } from "convex/react"
-import { format } from "date-fns"
 import {
+  CloudArrowUp,
   FileArchive,
   FileAudio,
   FileImage,
-  FileSpreadsheet,
   FileText,
   FileVideo,
+  FileXls,
   File as FileIcon,
-  Pencil,
-  Trash2,
-  Upload,
-  UploadCloud,
+  PencilSimple,
+  Trash,
+  UploadSimple,
   X,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useMutation, useQuery } from "convex/react"
+import { format } from "date-fns"
 import { useEffect, useState, type ReactNode } from "react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
@@ -64,7 +64,7 @@ function iconFor(d: DocItem) {
   if (ct.startsWith("audio/")) return FileAudio
   if (ct === "application/pdf" || ext === "pdf") return FileText
   if (["doc", "docx", "rtf", "txt", "md"].includes(ext)) return FileText
-  if (["xls", "xlsx", "csv", "tsv"].includes(ext)) return FileSpreadsheet
+  if (["xls", "xlsx", "csv", "tsv"].includes(ext)) return FileXls
   if (["zip", "tar", "gz", "rar", "7z"].includes(ext)) return FileArchive
   return FileIcon
 }
@@ -102,7 +102,7 @@ export default function Documents() {
         </div>
 
         <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
-          <Upload size={14} /> Upload
+          <UploadSimple size={14} /> Upload
         </button>
       </header>
 
@@ -114,11 +114,7 @@ export default function Documents() {
           onClick={() => setUploadOpen(true)}
           className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
         >
-          <UploadCloud
-            size={28}
-            strokeWidth={1.5}
-            className="text-neutral-400"
-          />
+          <CloudArrowUp size={28} weight="light" className="text-neutral-400" />
           <div>
             <div className="text-[14px] font-medium text-neutral-800">
               No documents yet
@@ -143,7 +139,7 @@ export default function Documents() {
                 ].join(" ")}
               >
                 <span className="grid h-10 w-10 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600">
-                  <Icon size={18} strokeWidth={1.5} />
+                  <Icon size={18} weight="light" />
                 </span>
 
                 <div className="min-w-0">
@@ -189,14 +185,14 @@ export default function Documents() {
                       aria-label="Edit"
                       className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-black"
                     >
-                      <Pencil size={14} />
+                      <PencilSimple size={14} />
                     </button>
                     <button
                       onClick={() => setConfirmDelete(d)}
                       aria-label="Delete"
                       className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
                     >
-                      <Trash2 size={14} />
+                      <Trash size={14} />
                     </button>
                   </div>
                 )}
@@ -511,11 +507,7 @@ function UploadModal({
               : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:border-neutral-400 hover:bg-white",
           ].join(" ")}
         >
-          <UploadCloud
-            size={24}
-            strokeWidth={1.5}
-            className="text-neutral-400"
-          />
+          <CloudArrowUp size={24} weight="light" className="text-neutral-400" />
           {file ? (
             <>
               <div className="text-[13px] font-medium text-black">
@@ -576,7 +568,7 @@ function UploadModal({
             disabled={!file || !title.trim() || uploading}
             className={btnPrimary}
           >
-            <Upload size={14} />
+            <UploadSimple size={14} />
             {uploading ? "Uploading…" : "Upload"}
           </button>
         </footer>

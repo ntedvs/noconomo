@@ -1,6 +1,5 @@
-import { TrashIcon } from "@phosphor-icons/react"
+import { ArrowDown, ArrowUp, TrashIcon } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
-import { ArrowDown, ArrowUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
@@ -131,30 +130,6 @@ export default function Admin() {
                 className="flex-1 rounded border px-2 py-1"
               />
             </div>
-          )}
-        />
-      </Section>
-
-      <Section title="Choosing Weeks">
-        <label className="block text-sm font-medium">Intro</label>
-        <textarea
-          value={content.choosingWeeksIntro}
-          onChange={(e) => update({ choosingWeeksIntro: e.target.value })}
-          rows={3}
-          className="mt-1 w-full rounded border px-2 py-1"
-        />
-        <label className="mt-3 block text-sm font-medium">Bullets</label>
-        <ListEditor
-          items={content.choosingWeeksBullets}
-          onChange={(choosingWeeksBullets) => update({ choosingWeeksBullets })}
-          newItem={() => ""}
-          render={(b, set) => (
-            <textarea
-              value={b}
-              onChange={(e) => set(e.target.value)}
-              rows={2}
-              className="w-full rounded border px-2 py-1"
-            />
           )}
         />
       </Section>

@@ -1,6 +1,6 @@
+import { FilePlus, Paperclip, Plus, Trash, X } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { format } from "date-fns"
-import { FilePlus2, Paperclip, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
@@ -110,7 +110,7 @@ export default function Expenses() {
           onClick={() => setAdding(true)}
           className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
         >
-          <Plus size={24} strokeWidth={1.5} className="text-neutral-400" />
+          <Plus size={24} weight="light" className="text-neutral-400" />
           <div>
             <div className="text-[14px] font-medium text-neutral-800">
               No expenses yet
@@ -484,7 +484,7 @@ function ExpenseModal(
               </ul>
             )}
             <label className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[var(--color-border)] px-3 py-1.5 text-[12px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-black">
-              <FilePlus2 size={13} />
+              <FilePlus size={13} />
               Add files
               <input
                 type="file"
@@ -612,7 +612,7 @@ function FileRow({
         aria-label="Remove file"
         className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
       >
-        <Trash2 size={13} />
+        <Trash size={13} />
       </button>
     </li>
   )

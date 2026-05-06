@@ -129,10 +129,10 @@ export default function Members() {
             placeholder="Search name, email, family…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-md border border-[var(--color-border)] bg-white py-1.5 pr-2.5 pl-8 text-sm"
+            className="h-8 w-full rounded-md border border-[var(--color-border)] bg-white pr-2.5 pl-8 text-sm"
           />
         </div>
-        <div className="flex rounded-md border border-[var(--color-border)] bg-white p-0.5 text-[12px]">
+        <div className="flex h-8 items-stretch rounded-md border border-[var(--color-border)] bg-white p-0.5 text-[12px]">
           {[["", "All"] as const, ...FAMILIES.map((f) => [f, f] as const)].map(
             ([v, label]) => {
               const active = familyFilter === v
@@ -140,7 +140,7 @@ export default function Members() {
                 <button
                   key={v || "all"}
                   onClick={() => setFamilyFilter(v)}
-                  className={`rounded-[5px] px-2.5 py-1 transition-colors ${
+                  className={`rounded-[5px] px-2.5 transition-colors ${
                     active
                       ? "bg-neutral-100 font-medium text-black"
                       : "text-neutral-500 hover:text-black"

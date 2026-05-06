@@ -45,6 +45,9 @@ export function Nav() {
             <NavLink to="/expenses" className={linkClass}>
               Expenses
             </NavLink>
+            <NavLink to="/napkin" className={linkClass}>
+              Napkin
+            </NavLink>
           </div>
         )}
 

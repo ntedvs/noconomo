@@ -12,6 +12,7 @@ import Expenses from "./expenses"
 import Gallery from "./gallery"
 import Handbook from "./handbook"
 import Members from "./members"
+import Napkin from "./napkin"
 import { Nav } from "./nav"
 import NotFound from "./not-found"
 import Store from "./store"
@@ -88,6 +89,14 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth>
                     <Expenses />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/napkin"
+                element={
+                  <RequireAuth>
+                    <Napkin />
                   </RequireAuth>
                 }
               />

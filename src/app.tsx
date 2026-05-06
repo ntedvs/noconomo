@@ -24,6 +24,7 @@ export default function App() {
     { to: "/handbook", title: "Handbook", desc: "House rules and contacts." },
     { to: "/documents", title: "Documents", desc: "Important files." },
     { to: "/expenses", title: "Expenses", desc: "Shared costs and ledger." },
+    { to: "/napkin", title: "Sacred Napkin", desc: "The yearly family order." },
   ]
 
   return (

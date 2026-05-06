@@ -26,13 +26,6 @@ export default function Handbook() {
           </li>
         ))}
       </ul>
-      <h2 className="mt-4 text-xl font-semibold">Choosing Weeks</h2>
-      <p className="mt-2">{c.choosingWeeksIntro}</p>
-      <ul className="mt-2 list-disc pl-6">
-        {c.choosingWeeksBullets.map((b, i) => (
-          <li key={i}>{b}</li>
-        ))}
-      </ul>
       <h2 className="mt-4 text-xl font-semibold">Trash and Recycling</h2>
       <ul className="mt-2 list-disc pl-6">
         {c.trashAndRecycling.map((b, i) => (

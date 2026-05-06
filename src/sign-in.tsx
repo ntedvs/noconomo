@@ -31,9 +31,11 @@ export function SignIn() {
     <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--color-bg-subtle)] px-4 py-16">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div
+          <img
+            src="/logo.svg"
+            alt=""
             aria-hidden
-            className="mx-auto mb-5 inline-block h-7 w-7 rotate-45 bg-black"
+            className="mx-auto mb-5 h-10 w-10"
           />
           <h1 className="text-2xl font-semibold tracking-tight">
             Sign in to Noconomo
@@ -92,7 +94,7 @@ export function SignIn() {
             {busy
               ? "Working…"
               : step === "email"
-                ? "Continue with email"
+                ? "Email me a code"
                 : "Verify"}
           </button>
 
