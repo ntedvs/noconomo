@@ -1,11 +1,13 @@
-import { Link } from "react-router"
+import { useQuery } from "convex/react"
+import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
 import { SignIn } from "./sign-in"
 import { useTitle } from "./use-title"
 
 export default function App() {
   useTitle("Noconomo")
-  const { user } = useAuth()
+  const { token, user } = useAuth()
+  const bulletins = useQuery(api.bulletins.list, token ? { token } : "skip")
 
   if (user === undefined) {
     return (
@@ -16,46 +18,37 @@ export default function App() {
   }
   if (user === null) return <SignIn />
 
-  const tiles: Array<{ to: string; title: string; desc: string }> = [
-    { to: "/calendar", title: "Calendar", desc: "Reservations and events." },
-    { to: "/members", title: "Members", desc: "Family directory." },
-    { to: "/gallery", title: "Gallery", desc: "Photos from the lake." },
-    { to: "/store", title: "Store", desc: "Shared supplies and goods." },
-    { to: "/handbook", title: "Handbook", desc: "House rules and contacts." },
-    { to: "/documents", title: "Documents", desc: "Important files." },
-    { to: "/expenses", title: "Expenses", desc: "Shared costs and ledger." },
-    { to: "/napkin", title: "Sacred Napkin", desc: "The yearly family order." },
-  ]
-
   return (
-    <main className="mx-auto max-w-7xl px-4 sm:px-6">
-      <section className="py-16">
+    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <header>
         <p className="mb-3 font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-          Welcome back
+          Bulletin Board
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Hello, {user.name.split(" ")[0]}.
+          What's new.
         </h1>
         <p className="mt-3 max-w-xl text-[15px] text-neutral-500">
-          Everything for the cottage, in one place.
+          Notes and notices from the family.
         </p>
-      </section>
+      </header>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {tiles.map((t) => (
-          <Link
-            key={t.to}
-            to={t.to}
-            className="group flex flex-col justify-between gap-6 bg-white p-6 transition-colors hover:bg-[var(--color-bg-subtle)]"
-          >
-            <div>
-              <h2 className="text-base font-semibold tracking-tight">
-                {t.title}
-              </h2>
-              <p className="mt-1 text-[13px] text-neutral-500">{t.desc}</p>
-            </div>
-          </Link>
-        ))}
+      <section className="mt-10 border-l border-[var(--color-border-strong)] pl-6">
+        {bulletins === undefined ? (
+          <p className="text-sm text-neutral-500">Loading…</p>
+        ) : bulletins.length === 0 ? (
+          <p className="text-sm text-neutral-500">Nothing posted yet.</p>
+        ) : (
+          <ul className="list-disc space-y-3 pl-5 marker:text-neutral-400">
+            {bulletins.map((b) => (
+              <li
+                key={b._id}
+                className="text-[15px] leading-relaxed whitespace-pre-wrap"
+              >
+                {b.content}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   )

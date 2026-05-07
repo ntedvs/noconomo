@@ -57,11 +57,13 @@ type Reservation = {
   color: string
   startDate: string
   endDate: string
+  notes?: string
 }
 type EventItem = {
   _id: Id<"events">
   date: string
   title: string
+  notes?: string
   createdByName: string
 }
 type Family = { _id: Id<"families">; name: string; color: string }
@@ -482,6 +484,7 @@ function ReservationFields({
   const [newColor, setNewColor] = useState(PALETTE[0])
   const [startDate, setStartDate] = useState(defaultStart)
   const [endDate, setEndDate] = useState(defaultEnd)
+  const [notes, setNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -506,6 +509,7 @@ function ReservationFields({
         familyId: fid,
         startDate,
         endDate,
+        notes,
       })
       onClose()
     } catch (err) {
@@ -588,6 +592,14 @@ function ReservationFields({
             className={inputCls}
           />
         </Field>
+        <Field label="Notes" span={2}>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className={inputCls}
+          />
+        </Field>
       </div>
       <ErrorMsg>{error}</ErrorMsg>
       <footer className="mt-5 flex justify-end gap-2">
@@ -607,6 +619,7 @@ function EventFields({ onClose }: { onClose: () => void }) {
   const createEvent = useMutation(api.events.create)
   const [date, setDate] = useState(fmt(new Date()))
   const [title, setTitle] = useState("")
+  const [notes, setNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -616,7 +629,7 @@ function EventFields({ onClose }: { onClose: () => void }) {
     setBusy(true)
     try {
       if (!title.trim()) throw new Error("Title required")
-      await createEvent({ token, date, title: title.trim() })
+      await createEvent({ token, date, title: title.trim(), notes })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed")
@@ -642,6 +655,14 @@ function EventFields({ onClose }: { onClose: () => void }) {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Notes" span={2}>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
             className={inputCls}
           />
         </Field>
@@ -716,6 +737,7 @@ function EditReservationModal({
   const [familyId, setFamilyId] = useState<Id<"families">>(reservation.familyId)
   const [startDate, setStartDate] = useState(reservation.startDate)
   const [endDate, setEndDate] = useState(reservation.endDate)
+  const [notes, setNotes] = useState(reservation.notes ?? "")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -723,7 +745,8 @@ function EditReservationModal({
   const dirty =
     familyId !== reservation.familyId ||
     startDate !== reservation.startDate ||
-    endDate !== reservation.endDate
+    endDate !== reservation.endDate ||
+    notes !== (reservation.notes ?? "")
 
   async function doSave() {
     setError(null)
@@ -735,6 +758,7 @@ function EditReservationModal({
         familyId,
         startDate,
         endDate,
+        notes,
       })
       onClose()
     } catch (err) {
@@ -791,6 +815,14 @@ function EditReservationModal({
               className={inputCls}
             />
           </Field>
+          <Field label="Notes" span={2}>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className={inputCls}
+            />
+          </Field>
         </div>
         <ErrorMsg>{error}</ErrorMsg>
         <footer className="mt-5 flex items-center justify-between gap-2">
@@ -840,17 +872,21 @@ function EditEventModal({
   const removeEvent = useMutation(api.events.remove)
   const [date, setDate] = useState(event.date)
   const [title, setTitle] = useState(event.title)
+  const [notes, setNotes] = useState(event.notes ?? "")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const dirty = date !== event.date || title !== event.title
+  const dirty =
+    date !== event.date ||
+    title !== event.title ||
+    notes !== (event.notes ?? "")
 
   async function doSave() {
     setError(null)
     setBusy(true)
     try {
-      await updateEvent({ token, id: event._id, date, title })
+      await updateEvent({ token, id: event._id, date, title, notes })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed")
@@ -889,6 +925,14 @@ function EditEventModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Notes" span={2}>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
               className={inputCls}
             />
           </Field>

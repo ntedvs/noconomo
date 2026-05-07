@@ -18,6 +18,7 @@ export const list = query({
       _id: e._id,
       date: e.date,
       title: e.title,
+      notes: e.notes,
       createdBy: e.createdBy,
       createdByName: nameById.get(e.createdBy) ?? "Unknown",
     }))
@@ -29,15 +30,18 @@ export const create = mutation({
     token: v.union(v.string(), v.null()),
     date: v.string(),
     title: v.string(),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
     if (!DATE_RE.test(args.date)) throw new Error("Invalid date format")
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
+    const notes = args.notes?.trim() || undefined
     return await ctx.db.insert("events", {
       date: args.date,
       title,
+      notes,
       createdBy: user._id,
     })
   },
@@ -49,13 +53,15 @@ export const update = mutation({
     id: v.id("events"),
     date: v.string(),
     title: v.string(),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireUser(ctx, args.token)
     if (!DATE_RE.test(args.date)) throw new Error("Invalid date format")
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
-    await ctx.db.patch(args.id, { date: args.date, title })
+    const notes = args.notes?.trim() || undefined
+    await ctx.db.patch(args.id, { date: args.date, title, notes })
     return null
   },
 })

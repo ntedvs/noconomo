@@ -1,8 +1,9 @@
-import { NavLink } from "react-router"
+import { NavLink, useNavigate } from "react-router"
 import { useAuth } from "./auth"
 
 export function Nav() {
   const { user, signOut } = useAuth()
+  const navigate = useNavigate()
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
@@ -54,9 +55,15 @@ export function Nav() {
         <div className="flex shrink-0 items-center gap-3">
           {user && (
             <>
-              <span className="hidden text-[13px] text-neutral-500 lg:inline">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/members", { state: { editSelf: true } })
+                }
+                className="hidden rounded-md px-1.5 py-1 text-[13px] text-neutral-500 hover:text-black lg:inline-block"
+              >
                 {user.name}
-              </span>
+              </button>
               <button
                 onClick={signOut}
                 className="rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black sm:px-3"

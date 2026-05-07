@@ -1,6 +1,7 @@
 import { MagnifyingGlass, Plus, X } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useLocation, useNavigate } from "react-router"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
@@ -63,11 +64,21 @@ export default function Members() {
   const [familyFilter, setFamilyFilter] = useState<string>("")
 
   const isAdmin = user?.admin === true
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const state = location.state as { editSelf?: boolean } | null
+    if (!state?.editSelf || !users || !user) return
+    const self = (users as Member[]).find((u) => u._id === user._id)
+    if (self) setEditing(self)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location, users, user, navigate])
 
   const filtered = useMemo(() => {
     if (!users) return []
     const q = query.trim().toLowerCase()
-    return (users as Member[]).filter((u) => {
+    const matches = (users as Member[]).filter((u) => {
       if (familyFilter && u.family !== familyFilter) return false
       if (!q) return true
       return (
@@ -76,7 +87,13 @@ export default function Members() {
         (u.family ?? "").toLowerCase().includes(q)
       )
     })
-  }, [users, query, familyFilter])
+    if (!user) return matches
+    return matches.sort((a, b) => {
+      if (a._id === user._id) return -1
+      if (b._id === user._id) return 1
+      return 0
+    })
+  }, [users, query, familyFilter, user])
 
   if (users === undefined) {
     return (

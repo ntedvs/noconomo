@@ -64,20 +64,6 @@ export default function Gallery() {
     })
   }, [items, filter, user])
 
-  // Group by month, preserving the order from the API (newest first).
-  const groups = useMemo(() => {
-    const map = new Map<string, { label: string; items: Media[] }>()
-    for (const m of filtered) {
-      const d = new Date(m._creationTime)
-      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`
-      const label = format(d, "MMMM yyyy")
-      const existing = map.get(key)
-      if (existing) existing.items.push(m)
-      else map.set(key, { label, items: [m] })
-    }
-    return Array.from(map.entries()).map(([key, value]) => ({ key, ...value }))
-  }, [filtered])
-
   const counts = useMemo(() => {
     if (!items) return { all: 0, photos: 0, videos: 0, mine: 0 }
     const list = items as Media[]
@@ -180,26 +166,16 @@ export default function Gallery() {
           </div>
         </div>
       ) : (
-        <div className="space-y-12">
-          {groups.map((g) => (
-            <section key={g.key}>
-              <SectionHeader label={g.label} count={g.items.length} />
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
-                {g.items.map((m) => {
-                  const flatIndex = filtered.indexOf(m)
-                  return (
-                    <Tile
-                      key={m._id}
-                      media={m}
-                      canEdit={user?._id === m.uploadedBy}
-                      onOpen={() => setViewer({ index: flatIndex })}
-                      onRename={() => setRenaming(m)}
-                      onDelete={() => setConfirmDelete(m)}
-                    />
-                  )
-                })}
-              </div>
-            </section>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+          {filtered.map((m, i) => (
+            <Tile
+              key={m._id}
+              media={m}
+              canEdit={user?._id === m.uploadedBy}
+              onOpen={() => setViewer({ index: i })}
+              onRename={() => setRenaming(m)}
+              onDelete={() => setConfirmDelete(m)}
+            />
           ))}
         </div>
       )}
@@ -237,22 +213,6 @@ export default function Gallery() {
         />
       )}
     </main>
-  )
-}
-
-/* ---------- Section header ---------- */
-
-function SectionHeader({ label, count }: { label: string; count: number }) {
-  return (
-    <div className="flex items-center gap-3">
-      <h2 className="font-mono text-[11px] tracking-widest text-neutral-700 uppercase">
-        {label}
-      </h2>
-      <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
-        {count} {count === 1 ? "item" : "items"}
-      </span>
-      <span className="h-px flex-1 bg-[var(--color-border)]" />
-    </div>
   )
 }
 
@@ -414,23 +374,13 @@ function Tile({
 
 function GridSkeleton() {
   return (
-    <div className="space-y-12">
-      {[0, 1].map((s) => (
-        <section key={s}>
-          <div className="flex items-center gap-3">
-            <span className="h-3 w-32 animate-pulse rounded bg-neutral-100" />
-            <span className="h-px flex-1 bg-[var(--color-border)]" />
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="aspect-square w-full animate-pulse rounded-md bg-neutral-100" />
-                <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-100" />
-                <div className="h-2.5 w-1/2 animate-pulse rounded bg-neutral-100" />
-              </div>
-            ))}
-          </div>
-        </section>
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="aspect-square w-full animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-100" />
+          <div className="h-2.5 w-1/2 animate-pulse rounded bg-neutral-100" />
+        </div>
       ))}
     </div>
   )

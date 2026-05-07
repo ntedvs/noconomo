@@ -21,6 +21,7 @@ export const list = query({
       color: byId.get(r.familyId)?.color ?? "#999999",
       startDate: r.startDate,
       endDate: r.endDate,
+      notes: r.notes,
     }))
   },
 })
@@ -31,6 +32,7 @@ export const create = mutation({
     familyId: v.id("families"),
     startDate: v.string(),
     endDate: v.string(),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
@@ -40,10 +42,12 @@ export const create = mutation({
     if (args.endDate < args.startDate) {
       throw new Error("End date must be on or after start date")
     }
+    const notes = args.notes?.trim() || undefined
     return await ctx.db.insert("reservations", {
       familyId: args.familyId,
       startDate: args.startDate,
       endDate: args.endDate,
+      notes,
       createdBy: user._id,
     })
   },
@@ -56,6 +60,7 @@ export const update = mutation({
     familyId: v.id("families"),
     startDate: v.string(),
     endDate: v.string(),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireUser(ctx, args.token)
@@ -65,10 +70,12 @@ export const update = mutation({
     if (args.endDate < args.startDate) {
       throw new Error("End date must be on or after start date")
     }
+    const notes = args.notes?.trim() || undefined
     await ctx.db.patch(args.id, {
       familyId: args.familyId,
       startDate: args.startDate,
       endDate: args.endDate,
+      notes,
     })
     return null
   },

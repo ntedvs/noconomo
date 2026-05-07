@@ -13,6 +13,11 @@ export default defineSchema({
     family: v.optional(v.string()),
   }).index("by_email", ["email"]),
 
+  bulletins: defineTable({
+    content: v.string(),
+    createdBy: v.id("users"),
+  }),
+
   handbook: defineTable({
     address: v.string(),
     phoneNumber: v.string(),
@@ -64,6 +69,7 @@ export default defineSchema({
     startDate: v.string(),
     endDate: v.string(),
     createdBy: v.id("users"),
+    notes: v.optional(v.string()),
   })
     .index("by_startDate", ["startDate"])
     .index("by_familyId", ["familyId"]),
@@ -82,6 +88,7 @@ export default defineSchema({
     date: v.string(),
     title: v.string(),
     createdBy: v.id("users"),
+    notes: v.optional(v.string()),
   }).index("by_date", ["date"]),
 
   expenses: defineTable({

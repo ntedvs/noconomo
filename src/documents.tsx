@@ -134,30 +134,28 @@ export default function Documents() {
               <li
                 key={d._id}
                 className={[
-                  "group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
+                  "group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
                   i > 0 ? "border-t border-[var(--color-border)]" : "",
                 ].join(" ")}
               >
-                <span className="grid h-10 w-10 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600">
+                {d.url && (
+                  <a
+                    href={d.url}
+                    download={d.fileName ?? d.title}
+                    aria-label={`Download ${d.title}`}
+                    className="absolute inset-0 z-0"
+                  />
+                )}
+
+                <span className="pointer-events-none relative grid h-10 w-10 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600">
                   <Icon size={18} weight="light" />
                 </span>
 
-                <div className="min-w-0">
+                <div className="pointer-events-none relative min-w-0">
                   <div className="flex items-center gap-2">
-                    {d.url ? (
-                      <a
-                        href={d.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="truncate text-[14px] font-medium text-black hover:underline"
-                      >
-                        {d.title}
-                      </a>
-                    ) : (
-                      <span className="truncate text-[14px] font-medium text-black">
-                        {d.title}
-                      </span>
-                    )}
+                    <span className="truncate text-[14px] font-medium text-black">
+                      {d.title}
+                    </span>
                     {ext && (
                       <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
                         {ext}
@@ -179,7 +177,7 @@ export default function Documents() {
                 </div>
 
                 {canEdit && (
-                  <div className="flex items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  <div className="relative z-10 flex items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                     <button
                       onClick={() => setRenaming(d)}
                       aria-label="Edit"
