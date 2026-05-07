@@ -52,7 +52,7 @@ export default function App() {
       </section>
 
       <footer className="mt-16 text-[13px] text-neutral-500">
-        Contact Nathaniel Davis with any bugs or thoughts about the site.
+        Contact Nathaniel Davis (nate@qstreet.org) with any bugs or thoughts about the site.
       </footer>
     </main>
   )

@@ -71,6 +71,10 @@ export default function Expenses() {
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             Expenses
           </h1>
+          <p className="mt-2 max-w-prose text-[13px] text-neutral-600">
+            Track shared camp expenses so costs can be split among
+            campmates.
+          </p>
           <p className="mt-2 text-[13px] text-neutral-500">
             {items === undefined ? (
               "Loading…"
