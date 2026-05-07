@@ -50,6 +50,10 @@ export default function App() {
           </ul>
         )}
       </section>
+
+      <footer className="mt-16 text-[13px] text-neutral-500">
+        Contact Nathaniel Davis with any bugs or thoughts about the site.
+      </footer>
     </main>
   )
 }
