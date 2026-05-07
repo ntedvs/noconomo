@@ -1,4 +1,5 @@
 import { v } from "convex/values"
+import { internal } from "./_generated/api"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
 
@@ -31,6 +32,7 @@ export const create = mutation({
     date: v.string(),
     title: v.string(),
     notes: v.optional(v.string()),
+    notify: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
@@ -38,12 +40,26 @@ export const create = mutation({
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
     const notes = args.notes?.trim() || undefined
-    return await ctx.db.insert("events", {
+    const id = await ctx.db.insert("events", {
       date: args.date,
       title,
       notes,
       createdBy: user._id,
     })
+    if (args.notify) {
+      const users = await ctx.db.query("users").take(1000)
+      const recipients = users
+        .map((u) => u.email)
+        .filter((e): e is string => !!e)
+      await ctx.scheduler.runAfter(0, internal.email.sendEventEmail, {
+        recipients,
+        title,
+        date: args.date,
+        notes,
+        senderName: user.name,
+      })
+    }
+    return id
   },
 })
 

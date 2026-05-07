@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
-import { requireAdmin, requireUser } from "./auth"
+import { requireUser } from "./auth"
 
 export const list = query({
   args: { token: v.union(v.string(), v.null()) },
@@ -16,7 +16,7 @@ export const add = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await requireAdmin(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
     const content = args.content.trim()
     if (!content) throw new Error("Empty bulletin")
     return await ctx.db.insert("bulletins", {
@@ -33,7 +33,7 @@ export const update = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.token)
+    await requireUser(ctx, args.token)
     const content = args.content.trim()
     if (!content) throw new Error("Empty bulletin")
     await ctx.db.patch(args.id, { content })
@@ -47,7 +47,7 @@ export const remove = mutation({
     id: v.id("bulletins"),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.token)
+    await requireUser(ctx, args.token)
     await ctx.db.delete(args.id)
     return null
   },

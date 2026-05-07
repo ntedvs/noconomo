@@ -6,6 +6,7 @@ import "./index.css"
 import Admin from "./admin"
 import App from "./app.tsx"
 import { AuthProvider, RequireAuth } from "./auth"
+import Bulletins from "./bulletins"
 import Calendar from "./calendar"
 import Documents from "./documents"
 import Expenses from "./expenses"
@@ -36,6 +37,14 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<App />} />
+              <Route
+                path="/bulletins"
+                element={
+                  <RequireAuth>
+                    <Bulletins />
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="/calendar"
                 element={

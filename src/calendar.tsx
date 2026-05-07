@@ -620,63 +620,129 @@ function EventFields({ onClose }: { onClose: () => void }) {
   const [date, setDate] = useState(fmt(new Date()))
   const [title, setTitle] = useState("")
   const [notes, setNotes] = useState("")
+  const [notify, setNotify] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [confirmNotify, setConfirmNotify] = useState(false)
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
+  async function save(withNotify: boolean) {
     setError(null)
     setBusy(true)
     try {
       if (!title.trim()) throw new Error("Title required")
-      await createEvent({ token, date, title: title.trim(), notes })
+      await createEvent({
+        token,
+        date,
+        title: title.trim(),
+        notes,
+        notify: withNotify,
+      })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed")
+      setConfirmNotify(false)
     } finally {
       setBusy(false)
     }
   }
 
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim()) {
+      setError("Title required")
+      return
+    }
+    if (notify) {
+      setConfirmNotify(true)
+      return
+    }
+    void save(false)
+  }
+
   return (
-    <form onSubmit={submit}>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Title" span={2}>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Annual lake clean-up"
-            className={inputCls}
-            autoFocus
-          />
-        </Field>
-        <Field label="Date">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={inputCls}
-          />
-        </Field>
-        <Field label="Notes" span={2}>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className={inputCls}
-          />
-        </Field>
-      </div>
-      <ErrorMsg>{error}</ErrorMsg>
-      <footer className="mt-5 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className={btnSecondary}>
-          Cancel
-        </button>
-        <button type="submit" disabled={busy} className={btnPrimary}>
-          {busy ? "Saving…" : "Save"}
-        </button>
-      </footer>
-    </form>
+    <>
+      <form onSubmit={submit}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Title" span={2}>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Annual lake clean-up"
+              className={inputCls}
+              autoFocus
+            />
+          </Field>
+          <Field label="Date">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Notes" span={2}>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className={inputCls}
+            />
+          </Field>
+          <label className="flex items-center gap-2 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={notify}
+              onChange={(e) => setNotify(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--color-border)]"
+            />
+            <span className="text-[13px] text-neutral-700">
+              Send an email to all members
+            </span>
+          </label>
+        </div>
+        <ErrorMsg>{error}</ErrorMsg>
+        <footer className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={btnSecondary}>
+            Cancel
+          </button>
+          <button type="submit" disabled={busy} className={btnPrimary}>
+            {busy ? "Saving…" : "Save"}
+          </button>
+        </footer>
+      </form>
+      {confirmNotify && (
+        <Modal
+          title="Send email to all members?"
+          onClose={() => !busy && setConfirmNotify(false)}
+          maxWidth="sm"
+        >
+          <p className="text-[13px] text-neutral-600">
+            This will email every member of Noconomo about{" "}
+            <span className="font-medium text-neutral-900">{title.trim()}</span>{" "}
+            on <span className="font-medium text-neutral-900">{date}</span>. Are
+            you sure?
+          </p>
+          <footer className="mt-5 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirmNotify(false)}
+              disabled={busy}
+              className={btnSecondary}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void save(true)}
+              disabled={busy}
+              className={btnPrimary}
+            >
+              {busy ? "Sending…" : "Send email"}
+            </button>
+          </footer>
+        </Modal>
+      )}
+    </>
   )
 }
 
