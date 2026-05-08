@@ -40,41 +40,46 @@ export default function Handbook() {
         ))}
       </ul>
       <h2 className="mt-4 text-xl font-semibold">Service Providers</h2>
-      <div className="mt-2 overflow-x-auto">
-        <table className="min-w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b bg-gray-50 text-left">
-              <th className="border px-2 py-1">Service</th>
-              <th className="border px-2 py-1">Provider</th>
-              <th className="border px-2 py-1">Contact</th>
-              <th className="border px-2 py-1">Phone Number</th>
-              <th className="border px-2 py-1">Email</th>
-              <th className="border px-2 py-1">Website</th>
-              <th className="border px-2 py-1">Account Number</th>
-              <th className="border px-2 py-1">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {c.serviceProviders.map((s, i) => (
-              <tr key={i} className="align-top">
-                <td className="border px-2 py-1">{s.service}</td>
-                <td className="border px-2 py-1">{s.provider}</td>
-                <td className="border px-2 py-1">{s.contact}</td>
-                <td className="border px-2 py-1 whitespace-nowrap">
-                  {s.phone}
-                </td>
-                <td className="border px-2 py-1">
-                  {s.email && (
+      <ul className="mt-2 space-y-3">
+        {c.serviceProviders.map((s, i) => (
+          <li key={i}>
+            <div className="font-semibold">{s.service}</div>
+            <dl className="mt-1 pl-6 text-sm text-gray-700">
+              {s.provider && (
+                <div>
+                  <dt className="inline font-medium">Provider:</dt>{" "}
+                  <dd className="inline">{s.provider}</dd>
+                </div>
+              )}
+              {s.contact && (
+                <div>
+                  <dt className="inline font-medium">Contact:</dt>{" "}
+                  <dd className="inline">{s.contact}</dd>
+                </div>
+              )}
+              {s.phone && (
+                <div>
+                  <dt className="inline font-medium">Phone:</dt>{" "}
+                  <dd className="inline">{s.phone}</dd>
+                </div>
+              )}
+              {s.email && (
+                <div>
+                  <dt className="inline font-medium">Email:</dt>{" "}
+                  <dd className="inline">
                     <a
                       href={`mailto:${s.email}`}
                       className="text-blue-600 hover:underline"
                     >
                       {s.email}
                     </a>
-                  )}
-                </td>
-                <td className="border px-2 py-1">
-                  {s.website && (
+                  </dd>
+                </div>
+              )}
+              {s.website && (
+                <div>
+                  <dt className="inline font-medium">Website:</dt>{" "}
+                  <dd className="inline">
                     <a
                       href={s.website}
                       target="_blank"
@@ -83,15 +88,25 @@ export default function Handbook() {
                     >
                       {s.website.replace(/^https?:\/\//, "")}
                     </a>
-                  )}
-                </td>
-                <td className="border px-2 py-1">{s.account}</td>
-                <td className="border px-2 py-1">{s.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </dd>
+                </div>
+              )}
+              {s.account && (
+                <div>
+                  <dt className="inline font-medium">Account:</dt>{" "}
+                  <dd className="inline">{s.account}</dd>
+                </div>
+              )}
+              {s.notes && (
+                <div>
+                  <dt className="inline font-medium">Notes:</dt>{" "}
+                  <dd className="inline">{s.notes}</dd>
+                </div>
+              )}
+            </dl>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
