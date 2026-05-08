@@ -27,6 +27,8 @@ export const save = mutation({
     token: v.union(v.string(), v.null()),
     address: v.string(),
     phoneNumber: v.string(),
+    wifiName: v.string(),
+    wifiPassword: v.string(),
     officers: v.array(v.object({ role: v.string(), name: v.string() })),
     choosingWeeksIntro: v.string(),
     choosingWeeksBullets: v.array(v.string()),

@@ -21,6 +21,8 @@ export default defineSchema({
   handbook: defineTable({
     address: v.string(),
     phoneNumber: v.string(),
+    wifiName: v.optional(v.string()),
+    wifiPassword: v.optional(v.string()),
     officers: v.array(v.object({ role: v.string(), name: v.string() })),
     choosingWeeksIntro: v.string(),
     choosingWeeksBullets: v.array(v.string()),

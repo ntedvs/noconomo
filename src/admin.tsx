@@ -35,9 +35,24 @@ export default function Admin() {
   useEffect(() => {
     if (stored === undefined) return
     if (content === null) {
-      setContent(
-        stored === null ? handbookDefaults : (stored as HandbookContent),
-      )
+      if (stored === null) {
+        setContent(handbookDefaults)
+      } else {
+        const {
+          _id: _i,
+          _creationTime: _c,
+          ...rest
+        } = stored as Partial<HandbookContent> & {
+          _id?: unknown
+          _creationTime?: unknown
+        }
+        setContent({
+          ...handbookDefaults,
+          ...rest,
+          wifiName: rest.wifiName ?? "",
+          wifiPassword: rest.wifiPassword ?? "",
+        } as HandbookContent)
+      }
     }
   }, [stored, content])
 
@@ -101,6 +116,27 @@ export default function Admin() {
           onChange={(e) => update({ phoneNumber: e.target.value })}
           className="w-full rounded border px-2 py-1"
         />
+      </Section>
+
+      <Section title="Wifi">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <label className="flex flex-col text-xs">
+            <span className="mb-1 text-gray-600">Network Name</span>
+            <input
+              value={content.wifiName}
+              onChange={(e) => update({ wifiName: e.target.value })}
+              className="rounded border px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="flex flex-col text-xs">
+            <span className="mb-1 text-gray-600">Password</span>
+            <input
+              value={content.wifiPassword}
+              onChange={(e) => update({ wifiPassword: e.target.value })}
+              className="rounded border px-2 py-1 text-sm"
+            />
+          </label>
+        </div>
       </Section>
 
       <Section title="Officers">

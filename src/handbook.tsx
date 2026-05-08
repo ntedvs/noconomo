@@ -18,6 +18,13 @@ export default function Handbook() {
       <p>{c.address}</p>
       <h2 className="mt-4 text-xl font-semibold">Phone Number</h2>
       <p>{c.phoneNumber}</p>
+      <h2 className="mt-4 text-xl font-semibold">Wifi</h2>
+      <p>
+        <span className="font-medium">Network:</span> {c.wifiName || "—"}
+      </p>
+      <p>
+        <span className="font-medium">Password:</span> {c.wifiPassword || "—"}
+      </p>
       <h2 className="mt-4 text-xl font-semibold">Officers</h2>
       <ul className="mt-2 list-disc pl-6">
         {c.officers.map((o, i) => (

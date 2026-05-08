@@ -13,6 +13,8 @@ export type ServiceProvider = {
 export type HandbookContent = {
   address: string
   phoneNumber: string
+  wifiName: string
+  wifiPassword: string
   officers: Officer[]
   choosingWeeksIntro: string
   choosingWeeksBullets: string[]
@@ -23,6 +25,8 @@ export type HandbookContent = {
 export const handbookDefaults: HandbookContent = {
   address: "354 Sewall Road, Wolfeboro, NH 03894",
   phoneNumber: "603-569-3623",
+  wifiName: "",
+  wifiPassword: "",
   officers: [
     { role: "President", name: "John Davis" },
     { role: "Vice President", name: "Martha Holland" },
