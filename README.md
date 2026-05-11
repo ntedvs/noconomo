@@ -13,5 +13,3 @@
 3. Calendar pricing guide
 4. Bidding system for weeks
 5. Maintenance and Projects page
-
-Just need a change.
