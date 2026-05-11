@@ -1,6 +1,15 @@
 import { v } from "convex/values"
-import { mutation, query } from "./_generated/server"
+import { internalQuery, mutation, query } from "./_generated/server"
 import { requireAdmin, requireUser } from "./auth"
+
+export const adminMemberEmails = internalQuery({
+  args: { token: v.union(v.string(), v.null()) },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.token)
+    const users = await ctx.db.query("users").take(1000)
+    return users.map((u) => u.email).filter((e): e is string => !!e)
+  },
+})
 
 export const list = query({
   args: { token: v.union(v.string(), v.null()) },

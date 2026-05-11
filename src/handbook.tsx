@@ -12,101 +12,146 @@ export default function Handbook() {
       : (stored as HandbookContent)
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Handbook</h1>
-      <h2 className="mt-4 text-xl font-semibold">Address</h2>
-      <p>{c.address}</p>
-      <h2 className="mt-4 text-xl font-semibold">Phone Number</h2>
-      <p>{c.phoneNumber}</p>
-      <h2 className="mt-4 text-xl font-semibold">Wifi</h2>
-      <p>
-        <span className="font-medium">Network:</span> {c.wifiName || "—"}
-      </p>
-      <p>
-        <span className="font-medium">Password:</span> {c.wifiPassword || "—"}
-      </p>
-      <h2 className="mt-4 text-xl font-semibold">Officers</h2>
-      <ul className="mt-2 list-disc pl-6">
-        {c.officers.map((o, i) => (
-          <li key={i}>
-            <span className="font-medium">{o.role}:</span> {o.name}
-          </li>
-        ))}
-      </ul>
-      <h2 className="mt-4 text-xl font-semibold">Trash and Recycling</h2>
-      <ul className="mt-2 list-disc pl-6">
-        {c.trashAndRecycling.map((b, i) => (
-          <li key={i}>{b}</li>
-        ))}
-      </ul>
-      <h2 className="mt-4 text-xl font-semibold">Service Providers</h2>
-      <ul className="mt-2 space-y-3">
-        {c.serviceProviders.map((s, i) => (
-          <li key={i}>
-            <div className="font-semibold">{s.service}</div>
-            <dl className="mt-1 pl-6 text-sm text-gray-700">
-              {s.provider && (
-                <div>
-                  <dt className="inline font-medium">Provider:</dt>{" "}
-                  <dd className="inline">{s.provider}</dd>
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Handbook</h1>
+      </header>
+
+      <article className="mt-12 space-y-10 text-fg">
+        <section>
+          <h2 className="font-display text-xl text-brown">Details</h2>
+          <p className="mt-2">{c.address}</p>
+          <p className="mt-1">{c.phoneNumber}</p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl text-brown">Wifi</h2>
+          <p className="mt-2">
+            <span className="font-semibold text-brown">Network:</span>{" "}
+            {c.wifiName || "—"}
+          </p>
+          <p className="mt-1">
+            <span className="font-semibold text-brown">Password:</span>{" "}
+            {c.wifiPassword || "—"}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl text-brown">Officers</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-6">
+            {c.officers.map((o, i) => (
+              <li key={i}>
+                <span className="font-semibold text-brown">{o.role}:</span>{" "}
+                {o.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {(c.faqs ?? []).length > 0 && (
+          <section>
+            <h2 className="font-display text-xl text-brown">FAQ</h2>
+            <ul className="mt-4 space-y-3">
+              {(c.faqs ?? []).map((f, i) => (
+                <li
+                  key={i}
+                  className="rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)]"
+                >
+                  <div className="font-display text-lg text-brown">
+                    {f.question}
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-fg-muted">
+                    {f.answer}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section>
+          <h2 className="font-display text-xl text-brown">Service Providers</h2>
+          <ul className="mt-4 space-y-3">
+            {c.serviceProviders.map((s, i) => (
+              <li
+                key={i}
+                className="rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)]"
+              >
+                <div className="font-display text-lg text-brown">
+                  {s.service}
                 </div>
-              )}
-              {s.contact && (
-                <div>
-                  <dt className="inline font-medium">Contact:</dt>{" "}
-                  <dd className="inline">{s.contact}</dd>
-                </div>
-              )}
-              {s.phone && (
-                <div>
-                  <dt className="inline font-medium">Phone:</dt>{" "}
-                  <dd className="inline">{s.phone}</dd>
-                </div>
-              )}
-              {s.email && (
-                <div>
-                  <dt className="inline font-medium">Email:</dt>{" "}
-                  <dd className="inline">
-                    <a
-                      href={`mailto:${s.email}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {s.email}
-                    </a>
-                  </dd>
-                </div>
-              )}
-              {s.website && (
-                <div>
-                  <dt className="inline font-medium">Website:</dt>{" "}
-                  <dd className="inline">
-                    <a
-                      href={s.website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {s.website.replace(/^https?:\/\//, "")}
-                    </a>
-                  </dd>
-                </div>
-              )}
-              {s.account && (
-                <div>
-                  <dt className="inline font-medium">Account:</dt>{" "}
-                  <dd className="inline">{s.account}</dd>
-                </div>
-              )}
-              {s.notes && (
-                <div>
-                  <dt className="inline font-medium">Notes:</dt>{" "}
-                  <dd className="inline">{s.notes}</dd>
-                </div>
-              )}
-            </dl>
-          </li>
-        ))}
-      </ul>
-    </div>
+                <dl className="mt-2 space-y-1 text-sm text-fg-muted">
+                  {s.provider && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Provider:
+                      </dt>{" "}
+                      <dd className="inline">{s.provider}</dd>
+                    </div>
+                  )}
+                  {s.contact && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Contact:
+                      </dt>{" "}
+                      <dd className="inline">{s.contact}</dd>
+                    </div>
+                  )}
+                  {s.phone && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Phone:
+                      </dt>{" "}
+                      <dd className="inline">{s.phone}</dd>
+                    </div>
+                  )}
+                  {s.email && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Email:
+                      </dt>{" "}
+                      <dd className="inline">{s.email}</dd>
+                    </div>
+                  )}
+                  {s.website && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Website:
+                      </dt>{" "}
+                      <dd className="inline">
+                        <a
+                          href={s.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sage-hover hover:underline"
+                        >
+                          {s.website.replace(/^https?:\/\//, "")}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                  {s.account && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Account:
+                      </dt>{" "}
+                      <dd className="inline">{s.account}</dd>
+                    </div>
+                  )}
+                  {s.notes && (
+                    <div>
+                      <dt className="inline font-semibold text-brown">
+                        Notes:
+                      </dt>{" "}
+                      <dd className="inline">{s.notes}</dd>
+                    </div>
+                  )}
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </article>
+    </main>
   )
 }

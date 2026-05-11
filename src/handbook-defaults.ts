@@ -1,4 +1,5 @@
 export type Officer = { role: string; name: string }
+export type Faq = { question: string; answer: string }
 export type ServiceProvider = {
   service: string
   provider: string
@@ -18,7 +19,7 @@ export type HandbookContent = {
   officers: Officer[]
   choosingWeeksIntro: string
   choosingWeeksBullets: string[]
-  trashAndRecycling: string[]
+  faqs: Faq[]
   serviceProviders: ServiceProvider[]
 }
 
@@ -45,11 +46,7 @@ export const handbookDefaults: HandbookContent = {
     "Round 2: each sept picks one more week, same order. The sept decides which of its families gets it.",
     "Remaining weeks are first come, first served. Noconomo families first, then friends.",
   ],
-  trashAndRecycling: [
-    "Bring the trash bins to the top of the driveway Tuesday mornings.",
-    "A transfer station sticker is by the sink if you need to use the transfer station.",
-    "Curbside pickup is handled by Casella. Reach them at 1-800-445-1318.",
-  ],
+  faqs: [],
   serviceProviders: [
     {
       service: "Plumbing",

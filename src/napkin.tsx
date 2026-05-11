@@ -23,49 +23,41 @@ export default function Napkin() {
   const [focus, setFocus] = useState(realYear)
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      {/* Header */}
-      <header className="mb-12 flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-            The Order
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Sacred Napkin
-          </h1>
-          <p className="mt-2 max-w-xl text-[13px] text-neutral-500">
-            Each year the families rotate. Three names, one cycle, repeating
-            forever.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setFocus((y) => y - 1)}
-            aria-label="Previous year"
-            className="grid h-8 w-8 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600 hover:border-neutral-400 hover:text-black"
-          >
-            <CaretLeft size={14} weight="bold" />
-          </button>
-          <button
-            onClick={() => setFocus(realYear)}
-            disabled={focus === realYear}
-            className="rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[12px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black disabled:opacity-50"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setFocus((y) => y + 1)}
-            aria-label="Next year"
-            className="grid h-8 w-8 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600 hover:border-neutral-400 hover:text-black"
-          >
-            <CaretRight size={14} weight="bold" />
-          </button>
-        </div>
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Sacred Napkin</h1>
+        <p className="mx-auto mt-4 max-w-xl text-base text-fg-muted">
+          Each year the families rotate. Three names, one cycle, repeating
+          forever.
+        </p>
       </header>
 
+      <div className="mt-10 flex items-center justify-center gap-2">
+        <button
+          onClick={() => setFocus((y) => y - 1)}
+          aria-label="Previous year"
+          className="grid h-9 w-9 place-items-center rounded-full border border-border-strong bg-paper text-brown hover:border-sage hover:text-sage-hover"
+        >
+          <CaretLeft size={14} weight="bold" />
+        </button>
+        <button
+          onClick={() => setFocus(realYear)}
+          disabled={focus === realYear}
+          className="rounded-full border border-border-strong bg-paper px-3 py-1.5 text-sm font-semibold text-brown hover:border-sage hover:text-sage-hover disabled:opacity-40"
+        >
+          Today
+        </button>
+        <button
+          onClick={() => setFocus((y) => y + 1)}
+          aria-label="Next year"
+          className="grid h-9 w-9 place-items-center rounded-full border border-border-strong bg-paper text-brown hover:border-sage hover:text-sage-hover"
+        >
+          <CaretRight size={14} weight="bold" />
+        </button>
+      </div>
+
       {/* Three columns */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+      <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
         {[focus - 1, focus, focus + 1].map((y, i) => (
           <YearCard
             key={y}
@@ -76,7 +68,6 @@ export default function Napkin() {
         ))}
       </div>
 
-      {/* How weeks are chosen */}
       <ChoosingWeeks />
     </main>
   )
@@ -108,34 +99,25 @@ const RULES: Array<{ title: string; body: string }> = [
 function ChoosingWeeks() {
   return (
     <section className="mt-20">
-      <header className="mb-8">
-        <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-          The Rules
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-          Choosing weeks
-        </h2>
+      <header className="text-center">
+        <h2 className="font-display text-3xl sm:text-4xl">Choosing weeks</h2>
       </header>
 
-      <ol className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+      <ol className="mt-8 overflow-hidden rounded-md border border-border bg-paper shadow-[0_1px_0_rgba(89,74,66,0.04)]">
         {RULES.map((r, i) => (
           <li
             key={r.title}
             className={[
-              "grid grid-cols-[44px_minmax(0,1fr)] gap-4 px-5 py-5 sm:px-6",
-              i > 0 ? "border-t border-[var(--color-border)]" : "",
+              "grid grid-cols-[40px_minmax(0,1fr)] gap-4 px-5 py-5 sm:px-6",
+              i > 0 ? "border-t border-border" : "",
             ].join(" ")}
           >
-            <span className="font-mono text-[11px] tracking-widest text-neutral-400 uppercase tabular-nums">
+            <span className="font-display text-2xl text-fg-subtle tabular-nums">
               {String(i + 1).padStart(2, "0")}
             </span>
             <div className="min-w-0">
-              <h3 className="text-[14px] font-semibold tracking-tight text-black">
-                {r.title}
-              </h3>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-600">
-                {r.body}
-              </p>
+              <h3 className="font-display text-lg text-brown">{r.title}</h3>
+              <p className="mt-1 text-base text-fg-muted">{r.body}</p>
             </div>
           </li>
         ))}
@@ -159,20 +141,20 @@ function YearCard({
   return (
     <article
       className={[
-        "relative flex flex-col rounded-lg p-6 sm:p-8",
+        "relative flex flex-col rounded-md p-6 sm:p-7",
         isFocus
-          ? "border-2 border-black bg-white shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)]"
-          : "border border-[var(--color-border)] bg-[var(--color-bg-subtle)]",
+          ? "border border-sage bg-paper shadow-[0_8px_30px_-12px_rgba(120,145,109,0.35)]"
+          : "border border-border bg-bg-subtle",
       ].join(" ")}
     >
       {/* Eyebrow row: always reserved so years align; content only when current */}
-      <div className="flex h-4 items-center justify-between">
+      <div className="flex h-5 items-center justify-between">
         {isCurrent ? (
           <>
-            <span className="font-mono text-[10px] tracking-widest text-black uppercase">
-              This Year
+            <span className="text-xs font-semibold text-sage-hover">
+              This year
             </span>
-            <span className="grid h-1.5 w-1.5 place-items-center rounded-full bg-black" />
+            <span className="grid h-1.5 w-1.5 place-items-center rounded-full bg-sage" />
           </>
         ) : null}
       </div>
@@ -180,20 +162,17 @@ function YearCard({
       {/* Year */}
       <div
         className={[
-          "mt-2 font-mono text-6xl font-semibold tabular-nums tracking-tight sm:text-7xl",
-          isFocus ? "text-black" : "text-neutral-300",
+          "mt-2 font-display text-5xl tabular-nums sm:text-6xl",
+          isFocus ? "text-brown" : "text-fg-subtle",
         ].join(" ")}
       >
         {year}
       </div>
 
-      {/* Divider */}
       <hr
         className={[
-          "my-6",
-          isFocus
-            ? "border-t border-black/15"
-            : "border-t border-[var(--color-border)]",
+          "my-5",
+          isFocus ? "border-t border-border-strong" : "border-t border-border",
         ].join(" ")}
       />
 
@@ -203,16 +182,16 @@ function YearCard({
           <li key={name} className="flex items-baseline gap-4">
             <span
               className={[
-                "font-mono text-[11px] tracking-widest tabular-nums uppercase",
-                isFocus ? "text-neutral-400" : "text-neutral-300",
+                "text-sm tabular-nums",
+                isFocus ? "text-fg-subtle" : "text-fg-subtle/60",
               ].join(" ")}
             >
               {String(i + 1).padStart(2, "0")}
             </span>
             <span
               className={[
-                "text-2xl font-semibold tracking-tight sm:text-3xl",
-                isFocus ? "text-black" : "text-neutral-300",
+                "font-display text-2xl sm:text-3xl",
+                isFocus ? "text-brown" : "text-fg-subtle",
               ].join(" ")}
             >
               {name}

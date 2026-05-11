@@ -69,7 +69,8 @@ export const setTitle = mutation({
     const user = await requireUser(ctx, args.token)
     const img = await ctx.db.get(args.imageId)
     if (!img) throw new Error("Not found")
-    if (img.uploadedBy !== user._id) throw new Error("Not allowed")
+    if (img.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     const title = args.title.trim()
     await ctx.db.patch(img._id, title ? { title } : { title: undefined })
     return null
@@ -85,7 +86,8 @@ export const remove = mutation({
     const user = await requireUser(ctx, args.token)
     const img = await ctx.db.get(args.imageId)
     if (!img) return null
-    if (img.uploadedBy !== user._id) throw new Error("Not allowed")
+    if (img.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     await ctx.storage.delete(img.storageId)
     if (img.posterStorageId) await ctx.storage.delete(img.posterStorageId)
     await ctx.db.delete(img._id)

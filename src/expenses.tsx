@@ -32,15 +32,13 @@ const fmtUSD = new Intl.NumberFormat("en-US", {
 })
 
 const inputCls =
-  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
-const labelCls =
-  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+  "w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
 const btnPrimary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+  "inline-flex items-center justify-center gap-2 rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
 const btnSecondary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+  "inline-flex items-center justify-center gap-2 rounded-full border border-border-strong bg-paper px-4 py-2 text-sm font-semibold text-brown hover:border-sage hover:text-sage-hover"
 const btnDanger =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-[13px] font-medium text-red-700 hover:bg-red-50"
+  "inline-flex items-center justify-center gap-2 rounded-full bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger-hover disabled:opacity-40"
 
 function splitFileName(name: string): { base: string; ext: string } {
   const idx = name.lastIndexOf(".")
@@ -55,135 +53,93 @@ export default function Expenses() {
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
 
-  const total = (items as Expense[] | undefined)?.reduce(
-    (sum, e) => sum + e.cost,
-    0,
-  )
-
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      {/* Header */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-            Ledger
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Expenses
-          </h1>
-          <p className="mt-2 max-w-prose text-[13px] text-neutral-600">
-            Track shared camp expenses so costs can be split among campmates.
-          </p>
-          <p className="mt-2 text-[13px] text-neutral-500">
-            {items === undefined ? (
-              "Loading…"
-            ) : (
-              <>
-                <span className="text-neutral-700">{items.length}</span> entr
-                {items.length === 1 ? "y" : "ies"}
-              </>
-            )}
-          </p>
-        </div>
-
-        <button onClick={() => setAdding(true)} className={btnPrimary}>
-          <Plus size={14} /> Add expense
-        </button>
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Expenses</h1>
       </header>
 
-      {/* Total card */}
-      {items && items.length > 0 && (
-        <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-3">
-          <Stat label="Total" value={fmtUSD.format(total ?? 0)} prominent />
-          <Stat label="Entries" value={String(items.length)} />
-          <Stat
-            label="Average"
-            value={
-              items.length ? fmtUSD.format((total ?? 0) / items.length) : "—"
-            }
-          />
-        </div>
-      )}
-
-      {/* List */}
-      {items === undefined ? (
-        <ListSkeleton />
-      ) : items.length === 0 ? (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
-        >
-          <Plus size={24} weight="light" className="text-neutral-400" />
-          <div>
-            <div className="text-[14px] font-medium text-neutral-800">
-              No expenses yet
-            </div>
-            <div className="mt-1 text-[12px] text-neutral-500">
-              Click to record your first expense.
-            </div>
-          </div>
+      <div className="mt-8 flex justify-center">
+        <button onClick={() => setAdding(true)} className={btnPrimary}>
+          <Plus size={16} weight="bold" /> Add expense
         </button>
-      ) : (
-        <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
-          {(items as Expense[]).map((e, i) => (
-            <li
-              key={e._id}
-              onClick={() => setEditing(e)}
-              className={[
-                "grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
-                i > 0 ? "border-t border-[var(--color-border)]" : "",
-              ].join(" ")}
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[14px] font-medium text-black">
-                    {e.item}
-                  </span>
-                  {e.attachments.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-1.5 py-px font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
-                      <Paperclip size={10} />
-                      {e.attachments.length}
+      </div>
+
+      <section className="mt-10">
+        {items === undefined ? (
+          <ListSkeleton />
+        ) : items.length === 0 ? (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-strong bg-paper/60 px-6 py-12 text-center transition hover:border-sage hover:bg-paper"
+          >
+            <Plus size={24} weight="light" className="text-fg-subtle" />
+            <div>
+              <p className="font-display text-lg text-brown">No expenses yet</p>
+              <p className="mt-1 text-sm text-fg-muted">
+                Click to record your first expense.
+              </p>
+            </div>
+          </button>
+        ) : (
+          <ul className="space-y-3">
+            {(items as Expense[]).map((e) => (
+              <li
+                key={e._id}
+                onClick={() => setEditing(e)}
+                className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-base font-semibold text-brown">
+                      {e.item}
                     </span>
+                    {e.attachments.length > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-bg-subtle px-2 py-0.5 text-xs text-fg-muted">
+                        <Paperclip size={10} />
+                        {e.attachments.length}
+                      </span>
+                    )}
+                  </div>
+                  {e.notes && (
+                    <div className="mt-1 truncate text-sm text-fg">
+                      {e.notes}
+                    </div>
+                  )}
+                  {e.attachments.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {e.attachments.map((a) => (
+                        <a
+                          key={a.storageId}
+                          href={a.url ?? "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(ev) => ev.stopPropagation()}
+                          className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-border bg-bg-subtle px-2.5 py-0.5 text-xs text-fg-muted hover:border-sage hover:text-sage-hover"
+                        >
+                          <Paperclip size={10} className="shrink-0" />
+                          <span className="truncate">{a.fileName}</span>
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </div>
-                {e.notes && (
-                  <div className="mt-1 truncate text-[12px] text-neutral-600">
-                    {e.notes}
-                  </div>
-                )}
-                {e.attachments.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {e.attachments.map((a) => (
-                      <a
-                        key={a.storageId}
-                        href={a.url ?? "#"}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(ev) => ev.stopPropagation()}
-                        className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700 hover:bg-neutral-200"
-                      >
-                        <Paperclip size={10} className="shrink-0" />
-                        <span className="truncate">{a.fileName}</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              <div className="flex flex-col items-end gap-0.5 whitespace-nowrap">
-                <span className="font-mono text-[14px] font-semibold text-black tabular-nums">
-                  {fmtUSD.format(e.cost)}
-                </span>
-                <span className="text-[11px] text-neutral-500">
-                  {format(new Date(e._creationTime), "MMM d, yyyy")}
-                  <span className="mx-1 text-neutral-300">·</span>
-                  {e.createdByName}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                <div className="flex flex-col items-end gap-0.5 whitespace-nowrap">
+                  <span className="font-display text-xl text-brown tabular-nums">
+                    {fmtUSD.format(e.cost)}
+                  </span>
+                  <span className="text-xs text-fg-muted">
+                    {format(new Date(e._creationTime), "MMM d, yyyy")}
+                    <span className="mx-1 text-fg-subtle">·</span>
+                    {e.createdByName}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {adding && <ExpenseModal mode="add" onClose={() => setAdding(false)} />}
       {editing && (
@@ -197,47 +153,19 @@ export default function Expenses() {
   )
 }
 
-function Stat({
-  label,
-  value,
-  prominent,
-}: {
-  label: string
-  value: string
-  prominent?: boolean
-}) {
-  return (
-    <div className="bg-white px-4 py-3.5">
-      <div className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase">
-        {label}
-      </div>
-      <div
-        className={[
-          "mt-1 font-mono tabular-nums text-black",
-          prominent ? "text-2xl font-semibold tracking-tight" : "text-lg",
-        ].join(" ")}
-      >
-        {value}
-      </div>
-    </div>
-  )
-}
-
 function ListSkeleton() {
   return (
-    <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+    <ul className="space-y-3">
       {[0, 1, 2].map((i) => (
         <li
           key={i}
-          className={`grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 ${
-            i > 0 ? "border-t border-[var(--color-border)]" : ""
-          }`}
+          className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4"
         >
           <div className="space-y-2">
-            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-neutral-100" />
-            <span className="block h-3 w-1/2 animate-pulse rounded bg-neutral-100" />
+            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-bg-muted" />
+            <span className="block h-3 w-1/2 animate-pulse rounded bg-bg-muted" />
           </div>
-          <span className="block h-4 w-20 animate-pulse rounded bg-neutral-100" />
+          <span className="block h-4 w-20 animate-pulse rounded bg-bg-muted" />
         </li>
       ))}
     </ul>
@@ -267,7 +195,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brown/30 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -275,15 +203,15 @@ function Modal({
         aria-modal="true"
         className={`w-full ${
           maxWidth === "sm" ? "max-w-sm" : "max-w-md"
-        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
-          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="font-display text-xl text-brown">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+            className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-brown"
           >
             <X size={16} />
           </button>
@@ -297,7 +225,7 @@ function Modal({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className={labelCls}>{label}</span>
+      <span className="text-sm font-semibold text-brown">{label}</span>
       {children}
     </label>
   )
@@ -306,7 +234,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 function ErrorMsg({ children }: { children: ReactNode }) {
   if (!children) return null
   return (
-    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+    <p className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
       {children}
     </p>
   )
@@ -412,7 +340,7 @@ function ExpenseModal(
           </Field>
           <Field label="Cost (USD)">
             <div className="relative">
-              <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 font-mono text-sm text-neutral-400">
+              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-base text-fg-subtle">
                 $
               </span>
               <input
@@ -421,7 +349,7 @@ function ExpenseModal(
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
                 required
-                className={`${inputCls} pl-6 font-mono tabular-nums`}
+                className={`${inputCls} pl-7 tabular-nums`}
                 placeholder="0.00"
               />
             </div>
@@ -436,7 +364,7 @@ function ExpenseModal(
           </Field>
 
           <div className="flex flex-col gap-1.5">
-            <span className={labelCls}>Files</span>
+            <span className="text-sm font-semibold text-brown">Files</span>
             {(existingAttachments.length > 0 || newFiles.length > 0) && (
               <ul className="flex flex-col gap-1.5">
                 {existingAttachments.map((a) => {
@@ -486,8 +414,8 @@ function ExpenseModal(
                 })}
               </ul>
             )}
-            <label className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[var(--color-border)] px-3 py-1.5 text-[12px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-black">
-              <FilePlus size={13} />
+            <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-dashed border-border-strong px-4 py-1.5 text-sm font-semibold text-fg-muted hover:border-sage hover:text-sage-hover">
+              <FilePlus size={14} />
               Add files
               <input
                 type="file"
@@ -542,9 +470,7 @@ function ExpenseModal(
           onClose={() => !busy && setConfirmDelete(false)}
           maxWidth="sm"
         >
-          <p className="text-[13px] text-neutral-600">
-            This action cannot be undone.
-          </p>
+          <p className="text-base text-fg">This action cannot be undone.</p>
           <footer className="mt-5 flex justify-end gap-2">
             <button
               type="button"
@@ -569,7 +495,7 @@ function ExpenseModal(
                 }
               }}
               disabled={busy}
-              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className={btnDanger}
             >
               {busy ? "Deleting…" : "Delete"}
             </button>
@@ -594,18 +520,16 @@ function FileRow({
   onRemove: () => void
 }) {
   return (
-    <li className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white pl-2.5">
-      <Paperclip size={12} className="shrink-0 text-neutral-400" />
+    <li className="flex items-center gap-2 rounded-md border border-border bg-paper pl-3">
+      <Paperclip size={12} className="shrink-0 text-fg-subtle" />
       <input
         value={base}
         onChange={(e) => onChangeBase(e.target.value)}
-        className="flex-1 border-0 bg-transparent py-1.5 text-sm focus:outline-none"
+        className="flex-1 border-0 bg-transparent py-1.5 text-base focus:outline-none"
       />
-      {ext && (
-        <span className="font-mono text-[11px] text-neutral-500">{ext}</span>
-      )}
+      {ext && <span className="text-xs text-fg-muted">{ext}</span>}
       {isNew && (
-        <span className="rounded-full bg-neutral-100 px-1.5 py-px text-[10px] font-medium tracking-wide text-neutral-600 uppercase">
+        <span className="rounded-full bg-sage-soft px-2 py-0.5 text-xs font-semibold text-sage-hover">
           New
         </span>
       )}
@@ -613,9 +537,9 @@ function FileRow({
         type="button"
         onClick={onRemove}
         aria-label="Remove file"
-        className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
+        className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-danger"
       >
-        <Trash size={13} />
+        <Trash size={14} />
       </button>
     </li>
   )

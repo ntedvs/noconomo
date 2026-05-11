@@ -4,7 +4,8 @@ import { render } from "@react-email/render"
 import { v } from "convex/values"
 import nodemailer from "nodemailer"
 import React from "react"
-import { internalAction } from "./_generated/server"
+import { internal } from "./_generated/api"
+import { action, internalAction } from "./_generated/server"
 import EventEmail from "./emails/event_email"
 
 function transporter() {
@@ -43,6 +44,45 @@ export const sendCodeEmail = internalAction({
     return null
   },
 })
+
+export const broadcast = action({
+  args: {
+    token: v.union(v.string(), v.null()),
+    subject: v.string(),
+    body: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const subject = args.subject.trim()
+    const body = args.body.trim()
+    if (!subject) throw new Error("Subject required")
+    if (!body) throw new Error("Body required")
+    const ccs: string[] = await ctx.runQuery(internal.users.adminMemberEmails, {
+      token: args.token,
+    })
+    const { from, transport } = transporter()
+    const html = `<div style="white-space:pre-wrap;font-family:sans-serif">${escapeHtml(
+      body,
+    )}</div>`
+    await transport.sendMail({
+      from,
+      to: from,
+      cc: ccs,
+      subject,
+      text: body,
+      html,
+    })
+    return { recipients: ccs.length }
+  },
+})
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
 
 export const sendEventEmail = internalAction({
   args: {

@@ -98,27 +98,30 @@ const ITEMS: Item[] = [
 export default function Store() {
   useTitle("Store")
   return (
-    <div className="mx-auto max-w-5xl p-4">
-      <h2 className="mb-4 text-2xl font-semibold">Store</h2>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Store</h1>
+      </header>
+
+      <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3">
         {ITEMS.map((item) => (
           <a
             key={item.url}
             href={item.url}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="flex flex-col gap-2 rounded border p-3 hover:shadow-sm"
+            className="flex flex-col gap-3 rounded-md border border-border bg-paper p-3 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
           >
             <img
               src={item.image}
               alt={item.name}
-              className="aspect-square rounded bg-white object-contain"
+              className="aspect-square rounded-md bg-bg-subtle object-contain"
               loading="lazy"
             />
-            <div className="text-sm font-medium">{item.name}</div>
+            <div className="text-sm font-semibold text-brown">{item.name}</div>
           </a>
         ))}
       </div>
-    </div>
+    </main>
   )
 }

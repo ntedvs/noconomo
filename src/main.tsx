@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter, Routes, Route, Outlet } from "react-router"
 import "./index.css"
 import Admin from "./admin"
+import AdminEmail from "./admin-email"
+import AdminHandbook from "./admin-handbook"
 import App from "./app.tsx"
 import { AuthProvider, RequireAuth } from "./auth"
 import Bulletins from "./bulletins"
@@ -114,6 +116,22 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth>
                     <Admin />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/handbook"
+                element={
+                  <RequireAuth>
+                    <AdminHandbook />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/email"
+                element={
+                  <RequireAuth>
+                    <AdminEmail />
                   </RequireAuth>
                 }
               />

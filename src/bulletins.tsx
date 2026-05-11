@@ -39,26 +39,22 @@ export default function Bulletins() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <header>
-        <p className="mb-3 font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-          Bulletin Board · Edit
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Add or edit notes.
-        </h1>
-        <p className="mt-3 max-w-xl text-[15px] text-neutral-500">
-          Post a new note, or edit and remove existing ones.
-        </p>
+    <main className="mx-auto max-w-2xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Add or edit notes</h1>
       </header>
 
-      <section className="mt-10 border-l border-[var(--color-border-strong)] pl-6">
+      <section className="mt-12">
         {bulletins === undefined ? (
-          <p className="text-sm text-neutral-500">Loading…</p>
+          <p className="text-center text-sm text-fg-subtle">Loading…</p>
         ) : bulletins.length === 0 ? (
-          <p className="text-sm text-neutral-500">Nothing posted yet.</p>
+          <div className="rounded-lg border border-dashed border-border-strong bg-paper/60 px-6 py-12 text-center">
+            <p className="font-display text-lg text-brown">
+              Nothing posted yet
+            </p>
+          </div>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {bulletins.map((b) => (
               <BulletinItem
                 key={b._id}
@@ -77,24 +73,22 @@ export default function Bulletins() {
         )}
       </section>
 
-      <section className="mt-12">
-        <p className="mb-3 font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-          Post a note
-        </p>
-        <form onSubmit={onPost} className="flex flex-col gap-3">
+      <section className="mt-10 rounded-md border border-border bg-paper p-5 shadow-[0_1px_0_rgba(89,74,66,0.04)]">
+        <h2 className="font-display text-xl text-brown">Post a note</h2>
+        <form onSubmit={onPost} className="mt-4 flex flex-col gap-3">
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={3}
             placeholder="Stuff we should know…"
-            className="w-full resize-y rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-[15px] leading-relaxed"
+            className="w-full resize-y rounded-md border border-border bg-bg px-3 py-2 text-base"
           />
-          <div className="flex items-center justify-between text-[13px] text-neutral-500">
+          <div className="flex items-center justify-between text-sm text-fg-muted">
             <span>Posted as {user.name || user.email}.</span>
             <button
               type="submit"
               disabled={posting || !draft.trim()}
-              className="rounded-[var(--radius-md)] bg-black px-4 py-2 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-40"
+              className="rounded-full bg-sage px-5 py-2 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
             >
               {posting ? "Posting…" : "Post"}
             </button>
@@ -102,12 +96,12 @@ export default function Bulletins() {
         </form>
       </section>
 
-      <div className="mt-12">
+      <div className="mt-10 flex justify-center">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 font-mono text-[11px] tracking-widest text-neutral-500 uppercase hover:text-neutral-900"
+          className="inline-flex items-center gap-1.5 text-sm text-fg-muted hover:text-brown"
         >
-          <ArrowLeftIcon size={12} weight="bold" />
+          <ArrowLeftIcon size={14} weight="bold" />
           Back to board
         </Link>
       </div>
@@ -157,27 +151,27 @@ function BulletinItem({
 
   if (editing) {
     return (
-      <li>
+      <li className="rounded-md border border-sage bg-paper p-4 shadow-[0_4px_16px_-8px_rgba(120,145,109,0.35)]">
         <textarea
           ref={ref}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           rows={3}
-          className="w-full resize-y rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-[15px] leading-relaxed"
+          className="w-full resize-y rounded-md border border-border bg-bg px-3 py-2 text-base"
         />
-        <div className="mt-2 flex items-center gap-3 text-[13px]">
+        <div className="mt-3 flex items-center gap-3 text-sm">
           <button
             type="button"
             onClick={save}
             disabled={busy}
-            className="rounded-[var(--radius-md)] bg-black px-3 py-1.5 font-medium text-white hover:bg-neutral-800 disabled:opacity-40"
+            className="rounded-full bg-sage px-4 py-1.5 font-semibold text-white hover:bg-sage-hover disabled:opacity-40"
           >
             {busy ? "Saving…" : "Save"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="text-neutral-500 hover:text-neutral-900"
+            className="text-fg-muted hover:text-brown"
           >
             Cancel
           </button>
@@ -187,20 +181,14 @@ function BulletinItem({
   }
 
   return (
-    <li className="group relative flex items-start gap-3">
-      <span
-        aria-hidden
-        className="mt-[0.7em] h-1 w-1 shrink-0 rounded-full bg-neutral-400"
-      />
-      <p className="flex-1 text-[15px] leading-relaxed whitespace-pre-wrap">
-        {content}
-      </p>
-      <span className="flex shrink-0 items-center gap-1 text-neutral-400">
+    <li className="group flex items-start gap-3 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]">
+      <p className="flex-1 text-base whitespace-pre-wrap text-fg">{content}</p>
+      <span className="flex shrink-0 items-center gap-1 text-fg-subtle opacity-0 transition group-hover:opacity-100">
         <button
           type="button"
           onClick={onStartEdit}
           aria-label="Edit"
-          className="rounded-[var(--radius-xs)] p-1.5 hover:bg-[var(--color-bg-muted)] hover:text-neutral-900"
+          className="rounded-full p-1.5 hover:bg-bg-muted hover:text-brown"
         >
           <PencilSimpleIcon size={16} />
         </button>
@@ -210,7 +198,7 @@ function BulletinItem({
             if (confirm("Delete this note?")) onRemove()
           }}
           aria-label="Delete"
-          className="rounded-[var(--radius-xs)] p-1.5 hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-danger)]"
+          className="rounded-full p-1.5 hover:bg-bg-muted hover:text-danger"
         >
           <TrashIcon size={16} />
         </button>

@@ -22,15 +22,13 @@ type Member = {
 const FAMILIES = ["Abbott", "Pirie", "Rice", "Guest"] as const
 
 const inputCls =
-  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
-const labelCls =
-  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+  "w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
 const btnPrimary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
 const btnSecondary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+  "inline-flex items-center justify-center gap-1.5 rounded-full border border-border-strong bg-paper px-4 py-2 text-sm font-semibold text-brown hover:border-sage hover:text-sage-hover"
 const btnDanger =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-[13px] font-medium text-red-700 hover:bg-red-50"
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger-hover"
 
 function digitsOnly(s: string) {
   return s.replace(/\D/g, "").slice(0, 10)
@@ -97,48 +95,31 @@ export default function Members() {
 
   if (users === undefined) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-12 text-sm text-neutral-500 sm:px-6">
+      <main className="mx-auto max-w-3xl px-5 py-14 text-center text-sm text-fg-subtle sm:py-20">
         Loading…
       </main>
     )
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      {/* Header */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-            Directory
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Members
-          </h1>
-          <p className="mt-2 text-[13px] text-neutral-500">
-            <span className="text-neutral-700">{users.length}</span> total
-            {filtered.length !== users.length && (
-              <>
-                <span className="mx-1.5 text-neutral-300">·</span>
-                <span className="text-neutral-700">{filtered.length}</span>{" "}
-                showing
-              </>
-            )}
-          </p>
-        </div>
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Members</h1>
+      </header>
 
-        {isAdmin && (
+      {isAdmin && (
+        <div className="mt-8 flex justify-center">
           <button onClick={() => setAdding(true)} className={btnPrimary}>
             <Plus weight="bold" /> Add member
           </button>
-        )}
-      </header>
+        </div>
+      )}
 
-      {/* Filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 sm:max-w-xs">
+      <div className="mt-10 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 sm:max-w-64">
           <MagnifyingGlass
-            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-neutral-400"
-            size={14}
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-subtle"
+            size={16}
             weight="bold"
           />
           <input
@@ -146,10 +127,10 @@ export default function Members() {
             placeholder="Search name, email, family…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="h-8 w-full rounded-md border border-[var(--color-border)] bg-white pr-2.5 pl-8 text-sm"
+            className="w-full rounded-full border border-border bg-paper py-2 pr-4 pl-9 text-sm"
           />
         </div>
-        <div className="flex h-8 items-stretch rounded-md border border-[var(--color-border)] bg-white p-0.5 text-[12px]">
+        <div className="flex items-stretch rounded-full border border-border bg-paper p-1 text-sm">
           {[["", "All"] as const, ...FAMILIES.map((f) => [f, f] as const)].map(
             ([v, label]) => {
               const active = familyFilter === v
@@ -157,10 +138,10 @@ export default function Members() {
                 <button
                   key={v || "all"}
                   onClick={() => setFamilyFilter(v)}
-                  className={`rounded-[5px] px-2.5 transition-colors ${
+                  className={`rounded-full px-3 py-1 transition-colors ${
                     active
-                      ? "bg-neutral-100 font-medium text-black"
-                      : "text-neutral-500 hover:text-black"
+                      ? "bg-sage-soft font-semibold text-brown"
+                      : "text-fg-muted hover:text-brown"
                   }`}
                 >
                   {label}
@@ -171,74 +152,77 @@ export default function Members() {
         </div>
       </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] py-12 text-center text-[13px] text-neutral-500">
-          No members match your filters.
-        </div>
-      ) : (
-        <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
-          {filtered.map((u, i) => {
-            const canEdit = isAdmin || u._id === user?._id
-            const isMe = u._id === user?._id
-            return (
-              <li
-                key={u._id}
-                onClick={canEdit ? () => setEditing(u) : undefined}
-                className={[
-                  "grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors",
-                  i > 0 ? "border-t border-[var(--color-border)]" : "",
-                  canEdit
-                    ? "cursor-pointer hover:bg-[var(--color-bg-subtle)]"
-                    : "",
-                ].join(" ")}
-              >
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 text-[12px] font-semibold tracking-tight text-neutral-700">
-                  {initials(u.name) || "—"}
-                </span>
+      <section className="mt-3">
+        {filtered.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border-strong bg-paper/60 px-6 py-12 text-center">
+            <p className="font-display text-lg text-brown">No matches</p>
+            <p className="mt-1 text-sm text-fg-muted">
+              No members match your filters.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {filtered.map((u) => {
+              const canEdit = isAdmin || u._id === user?._id
+              const isMe = u._id === user?._id
+              return (
+                <li
+                  key={u._id}
+                  onClick={canEdit ? () => setEditing(u) : undefined}
+                  className={[
+                    "grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition",
+                    canEdit
+                      ? "cursor-pointer hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+                      : "",
+                  ].join(" ")}
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-sage-soft text-sm font-semibold text-brown">
+                    {initials(u.name) || "—"}
+                  </span>
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-[14px] font-medium text-black">
-                      {u.name}
-                    </span>
-                    {isMe && (
-                      <span className="rounded-full border border-[var(--color-border)] px-1.5 py-px text-[10px] tracking-wide text-neutral-500 uppercase">
-                        You
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-base font-semibold text-brown">
+                        {u.name}
+                      </span>
+                      {isMe && (
+                        <span className="rounded-full border border-border px-2 py-0.5 text-xs text-fg-muted">
+                          You
+                        </span>
+                      )}
+                      {u.admin && (
+                        <span className="rounded-full bg-sage px-2 py-0.5 text-xs font-semibold text-white">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                    <div className="truncate text-sm text-fg-muted">
+                      {u.email}
+                    </div>
+                  </div>
+
+                  <div className="hidden items-center gap-x-4 gap-y-1 text-sm text-fg-muted md:flex md:flex-wrap md:justify-end">
+                    {u.family && (
+                      <span className="inline-flex items-center rounded-full bg-bg-subtle px-2.5 py-0.5 text-xs font-semibold text-brown">
+                        {u.family}
                       </span>
                     )}
-                    {u.admin && (
-                      <span className="rounded-full bg-black px-1.5 py-px text-[10px] font-medium tracking-wide text-white uppercase">
-                        Admin
+                    {u.generation && <Meta label="Gen">{u.generation}</Meta>}
+                    {u.shares !== undefined && (
+                      <Meta label="Shares">{u.shares}</Meta>
+                    )}
+                    {u.phoneNumber && (
+                      <span className="text-sm text-fg-muted tabular-nums">
+                        {formatPhone(u.phoneNumber)}
                       </span>
                     )}
                   </div>
-                  <div className="truncate text-[12px] text-neutral-500">
-                    {u.email}
-                  </div>
-                </div>
-
-                <div className="hidden items-center gap-x-5 gap-y-1 text-[12px] text-neutral-600 md:flex md:flex-wrap md:justify-end">
-                  {u.family && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700">
-                      {u.family}
-                    </span>
-                  )}
-                  {u.generation && <Meta label="Gen">{u.generation}</Meta>}
-                  {u.shares !== undefined && (
-                    <Meta label="Shares">{u.shares}</Meta>
-                  )}
-                  {u.phoneNumber && (
-                    <span className="font-mono text-[12px] text-neutral-600 tabular-nums">
-                      {formatPhone(u.phoneNumber)}
-                    </span>
-                  )}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
       {editing && (
         <EditMemberModal
@@ -254,11 +238,9 @@ export default function Members() {
 
 function Meta({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <span className="inline-flex items-baseline gap-1">
-      <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
-        {label}
-      </span>
-      <span className="text-neutral-700">{children}</span>
+    <span className="inline-flex items-baseline gap-1 text-sm">
+      <span className="text-fg-subtle">{label}</span>
+      <span className="text-brown">{children}</span>
     </span>
   )
 }
@@ -286,7 +268,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-fg/30 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -294,15 +276,15 @@ function Modal({
         aria-modal="true"
         className={`w-full ${
           maxWidth === "sm" ? "max-w-sm" : "max-w-md"
-        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
-          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="font-display text-xl text-brown">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+            className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-brown"
           >
             <X />
           </button>
@@ -326,7 +308,7 @@ function Field({
     <label
       className={`flex flex-col gap-1.5 ${span === 2 ? "sm:col-span-2" : ""}`}
     >
-      <span className={labelCls}>{label}</span>
+      <span className="text-sm font-semibold text-brown">{label}</span>
       {children}
     </label>
   )
@@ -335,7 +317,7 @@ function Field({
 function ErrorMsg({ children }: { children: ReactNode }) {
   if (!children) return null
   return (
-    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+    <p className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
       {children}
     </p>
   )
@@ -392,7 +374,7 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Add member" onClose={onClose}>
       <form onSubmit={submit}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" span={2}>
             <input
               value={name}
@@ -463,18 +445,18 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
               className={inputCls}
             />
           </Field>
-          <label className="flex items-center gap-2 text-[13px] text-neutral-700 sm:col-span-2">
+          <label className="flex items-center gap-2 text-sm text-brown sm:col-span-2">
             <input
               type="checkbox"
               checked={admin}
               onChange={(e) => setAdmin(e.target.checked)}
-              className="h-3.5 w-3.5 accent-black"
+              className="h-4 w-4 accent-sage"
             />
             <span>Admin</span>
           </label>
         </div>
         <ErrorMsg>{err}</ErrorMsg>
-        <footer className="mt-5 flex justify-end gap-2">
+        <footer className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={onClose} className={btnSecondary}>
             Cancel
           </button>
@@ -553,21 +535,21 @@ function EditMemberModal({
     <>
       <Modal title="Edit member" onClose={onClose}>
         <form onSubmit={submit}>
-          <div className="mb-4 flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-white text-[12px] font-semibold text-neutral-700 ring-1 ring-[var(--color-border)] ring-inset">
+          <div className="mb-5 flex items-center gap-3 rounded-md border border-border bg-bg-subtle px-4 py-3">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-paper text-sm font-semibold text-brown ring-1 ring-border ring-inset">
               {initials(member.name) || "—"}
             </span>
             <div className="min-w-0">
-              <div className="truncate text-[13px] font-medium">
+              <div className="truncate text-base font-semibold text-brown">
                 {member.name}
               </div>
-              <div className="truncate text-[11px] text-neutral-500">
+              <div className="truncate text-sm text-fg-muted">
                 {member.email}
               </div>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name" span={2}>
               <input
                 value={name}
@@ -596,7 +578,7 @@ function EditMemberModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={!isAdmin}
-                className={`${inputCls} disabled:bg-[var(--color-bg-subtle)] disabled:text-neutral-500`}
+                className={`${inputCls} disabled:bg-bg-subtle disabled:text-fg-muted`}
               />
             </Field>
             <Field label="Phone Number" span={2}>
@@ -638,19 +620,19 @@ function EditMemberModal({
               />
             </Field>
             {isAdmin && (
-              <label className="flex items-center gap-2 text-[13px] text-neutral-700 sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm text-brown sm:col-span-2">
                 <input
                   type="checkbox"
                   checked={admin}
                   onChange={(e) => setAdmin(e.target.checked)}
-                  className="h-3.5 w-3.5 accent-black"
+                  className="h-4 w-4 accent-sage"
                 />
                 <span>Admin</span>
               </label>
             )}
           </div>
           <ErrorMsg>{err}</ErrorMsg>
-          <footer className="mt-5 flex items-center justify-between gap-2">
+          <footer className="mt-6 flex items-center justify-between gap-3">
             <div>
               {isAdmin && member._id !== me?._id && (
                 <button
@@ -662,7 +644,7 @@ function EditMemberModal({
                 </button>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button type="button" onClick={onClose} className={btnSecondary}>
                 Cancel
               </button>
@@ -680,11 +662,11 @@ function EditMemberModal({
           onClose={() => !busy && setConfirmDelete(false)}
           maxWidth="sm"
         >
-          <p className="text-[13px] text-neutral-600">
+          <p className="text-sm text-fg-muted">
             This will remove the member and revoke their sessions. This action
             cannot be undone.
           </p>
-          <footer className="mt-5 flex justify-end gap-2">
+          <footer className="mt-6 flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setConfirmDelete(false)}
@@ -709,7 +691,7 @@ function EditMemberModal({
                 }
               }}
               disabled={busy}
-              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className={btnDanger}
             >
               {busy ? "Deleting…" : "Delete"}
             </button>

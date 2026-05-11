@@ -22,32 +22,30 @@ import { useTitle } from "./use-title"
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const PALETTE = [
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#0ea5e9",
-  "#6366f1",
-  "#a855f7",
-  "#ec4899",
-  "#14b8a6",
-  "#78716c",
+  "#b54a3b",
+  "#d18a4a",
+  "#c9a23a",
+  "#78916d",
+  "#4a6978",
+  "#6b6fa0",
+  "#9a6da0",
+  "#b76a8a",
+  "#5a8a85",
+  "#8a7866",
 ]
 
 const fmt = (d: Date) => format(d, "yyyy-MM-dd")
 
 const inputCls =
-  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
-const labelCls =
-  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+  "w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
 const btnPrimary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-sage px-5 py-2 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
 const btnSecondary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+  "inline-flex items-center justify-center gap-1.5 rounded-full border border-border-strong bg-paper px-3 py-1.5 text-sm font-semibold text-brown hover:border-sage hover:text-sage-hover"
 const btnDanger =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-[13px] font-medium text-red-700 hover:bg-red-50"
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger-hover disabled:opacity-40"
 const iconBtn =
-  "inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600 hover:border-neutral-400 hover:text-black"
+  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-strong bg-paper text-brown hover:border-sage hover:text-sage-hover"
 
 type FormKind = "reservation" | "event"
 type Reservation = {
@@ -80,67 +78,43 @@ export default function Calendar() {
   const families = useQuery(api.families.list, { token }) ?? []
   const events = useQuery(api.events.list, { token }) ?? []
 
-  const rangeStart = month
-  const rangeEnd = endOfMonth(month)
-  const visibleResCount = reservations.filter(
-    (r) => r.endDate >= fmt(rangeStart) && r.startDate <= fmt(rangeEnd),
-  ).length
-  const visibleEventCount = events.filter(
-    (e) => e.date >= fmt(rangeStart) && e.date <= fmt(rangeEnd),
-  ).length
-
   const title = format(month, "MMMM yyyy")
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      {/* Header */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-            Calendar
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {title}
-            </h1>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setMonth((m) => subMonths(m, 1))}
-                aria-label="Previous month"
-                className={iconBtn}
-              >
-                <CaretLeft weight="bold" />
-              </button>
-              <button
-                onClick={() => setMonth(startOfMonth(new Date()))}
-                className={btnSecondary}
-              >
-                Today
-              </button>
-              <button
-                onClick={() => setMonth((m) => addMonths(m, 1))}
-                aria-label="Next month"
-                className={iconBtn}
-              >
-                <CaretRight weight="bold" />
-              </button>
-            </div>
+    <main className="mx-auto max-w-5xl px-5 py-10 sm:py-14">
+      <header className="mb-4 flex flex-col gap-4">
+        <h1 className="font-display text-4xl text-brown sm:text-5xl">
+          {title}
+        </h1>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setMonth((m) => subMonths(m, 1))}
+              aria-label="Previous month"
+              className={iconBtn}
+            >
+              <CaretLeft weight="bold" />
+            </button>
+            <button
+              onClick={() => setMonth(startOfMonth(new Date()))}
+              className={btnSecondary}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setMonth((m) => addMonths(m, 1))}
+              aria-label="Next month"
+              className={iconBtn}
+            >
+              <CaretRight weight="bold" />
+            </button>
           </div>
-          <p className="mt-2 text-[13px] text-neutral-500">
-            <span className="text-neutral-700">{visibleResCount}</span>{" "}
-            reservation{visibleResCount === 1 ? "" : "s"}
-            <span className="mx-1.5 text-neutral-300">·</span>
-            <span className="text-neutral-700">{visibleEventCount}</span> event
-            {visibleEventCount === 1 ? "" : "s"}
-          </p>
+          <button onClick={() => setShowForm(true)} className={btnPrimary}>
+            <Plus weight="bold" /> New
+          </button>
         </div>
-
-        <button onClick={() => setShowForm(true)} className={btnPrimary}>
-          <Plus weight="bold" /> New
-        </button>
       </header>
 
-      {/* Body */}
       <MonthGrid
         month={month}
         reservations={reservations}
@@ -149,7 +123,6 @@ export default function Calendar() {
         onEditEvent={setEditingEvent}
       />
 
-      {/* Modals */}
       {showForm && (
         <NewItemModal families={families} onClose={() => setShowForm(false)} />
       )}
@@ -185,7 +158,7 @@ function Segmented<T extends string>({
     <div
       role="tablist"
       aria-label="View"
-      className="inline-flex rounded-md border border-[var(--color-border)] bg-white p-0.5 text-[12px]"
+      className="inline-flex rounded-full border border-border bg-bg p-1 text-sm"
     >
       {options.map(([v, label]) => {
         const active = value === v
@@ -195,10 +168,10 @@ function Segmented<T extends string>({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(v)}
-            className={`rounded-[5px] px-2.5 py-1 transition-colors ${
+            className={`rounded-full px-4 py-1 transition-colors ${
               active
-                ? "bg-neutral-100 font-medium text-black"
-                : "text-neutral-500 hover:text-black"
+                ? "bg-sage font-semibold text-white"
+                : "text-fg-muted hover:text-brown"
             }`}
           >
             {label}
@@ -230,7 +203,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-fg/30 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -238,15 +211,15 @@ function Modal({
         aria-modal="true"
         className={`w-full ${
           maxWidth === "sm" ? "max-w-sm" : "max-w-md"
-        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.25)]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
-          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="font-display text-xl text-brown">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+            className="rounded-full p-1.5 text-fg-muted hover:bg-bg-muted hover:text-brown"
           >
             <X />
           </button>
@@ -282,21 +255,21 @@ function MonthGrid({
 
   return (
     <section>
-      <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-border)]">
+      <div className="overflow-hidden rounded-lg border border-border bg-border shadow-[0_1px_0_rgba(89,74,66,0.04)]">
         {/* Weekday header */}
-        <div className="grid grid-cols-7 gap-px bg-[var(--color-border)]">
+        <div className="grid grid-cols-7 gap-px border-b border-border bg-border">
           {WEEKDAYS.map((d) => (
             <div
               key={d}
-              className="bg-white py-2 text-center text-[11px] font-medium text-neutral-500"
+              className="bg-bg-subtle py-2 text-center font-display text-sm text-brown"
             >
-              {d.toUpperCase()}
+              {d}
             </div>
           ))}
         </div>
 
         {/* Day cells */}
-        <div className="grid grid-cols-7 gap-px bg-[var(--color-border)]">
+        <div className="grid grid-cols-7 gap-px bg-border">
           {days.map((day) => {
             const inMonth = isSameMonth(day, month)
             const iso = fmt(day)
@@ -311,29 +284,27 @@ function MonthGrid({
                 key={iso}
                 className={[
                   "relative flex min-h-16 flex-col gap-1 p-1 transition-colors sm:min-h-28 sm:p-2",
-                  inMonth ? "bg-white" : "bg-[#fbfbfb]",
+                  inMonth ? "bg-paper" : "bg-bg-subtle",
                 ].join(" ")}
               >
-                {/* Day number */}
                 <div className="flex items-center justify-between">
                   {inMonth ? (
                     today ? (
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-semibold text-white">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sage text-xs font-semibold text-white tabular-nums">
                         {format(day, "d")}
                       </span>
                     ) : (
-                      <span className="text-[12px] font-medium text-neutral-700 tabular-nums">
+                      <span className="font-display text-sm text-brown tabular-nums">
                         {format(day, "d")}
                       </span>
                     )
                   ) : (
-                    <span className="text-[12px] text-neutral-300 tabular-nums">
+                    <span className="text-sm text-fg-subtle tabular-nums">
                       {format(day, "d")}
                     </span>
                   )}
                 </div>
 
-                {/* Items */}
                 <div className="flex flex-col gap-1">
                   {todays.map((r) => {
                     const isStart = r.startDate === iso
@@ -344,19 +315,13 @@ function MonthGrid({
                         type="button"
                         onClick={() => onEditReservation(r)}
                         title={`${r.familyName} (${r.startDate} – ${r.endDate})`}
-                        className="group flex items-center gap-1.5 truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium text-neutral-800 hover:opacity-80"
-                        style={{
-                          backgroundColor: hexAlpha(r.color, 0.13),
-                        }}
+                        style={{ backgroundColor: r.color }}
+                        className="flex items-center truncate rounded-full px-2 py-0.5 text-left text-xs font-semibold text-white hover:opacity-80"
                       >
-                        <span
-                          className="h-2.5 w-0.5 shrink-0 rounded-sm"
-                          style={{ backgroundColor: r.color }}
-                        />
                         <span className="truncate">
                           {r.familyName}
                           {(isStart || isEnd) && (
-                            <span className="ml-1 text-[9px] tracking-wide text-neutral-500 uppercase">
+                            <span className="ml-1 text-xs font-normal text-white/80">
                               {isStart && isEnd ? "" : isStart ? "in" : "out"}
                             </span>
                           )}
@@ -370,9 +335,9 @@ function MonthGrid({
                       type="button"
                       onClick={() => onEditEvent(e)}
                       title={`${e.title} — added by ${e.createdByName}`}
-                      className="flex items-center gap-1.5 truncate rounded bg-neutral-900 px-1.5 py-0.5 text-left text-[11px] font-medium text-white hover:bg-neutral-700"
+                      className="flex items-center gap-1.5 truncate rounded-full bg-sage px-2 py-0.5 text-left text-xs font-semibold text-white hover:bg-sage-hover"
                     >
-                      <span className="h-1 w-1 shrink-0 rounded-full bg-white/70" />
+                      <span className="h-1 w-1 shrink-0 rounded-full bg-white/80" />
                       <span className="truncate">{e.title}</span>
                     </button>
                   ))}
@@ -384,21 +349,6 @@ function MonthGrid({
       </div>
     </section>
   )
-}
-
-function hexAlpha(hex: string, alpha: number) {
-  const m = hex.replace("#", "")
-  const v =
-    m.length === 3
-      ? m
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : m
-  const r = parseInt(v.slice(0, 2), 16)
-  const g = parseInt(v.slice(2, 4), 16)
-  const b = parseInt(v.slice(4, 6), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 /* ---------- New item modal ---------- */
@@ -445,7 +395,7 @@ function Field({
     <label
       className={`flex flex-col gap-1.5 ${span === 2 ? "sm:col-span-2" : ""}`}
     >
-      <span className={labelCls}>{label}</span>
+      <span className="text-sm font-semibold text-brown">{label}</span>
       {children}
     </label>
   )
@@ -454,7 +404,7 @@ function Field({
 function ErrorMsg({ children }: { children: ReactNode }) {
   if (!children) return null
   return (
-    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+    <p className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
       {children}
     </p>
   )
@@ -550,17 +500,17 @@ function ReservationFields({
               />
             </Field>
             <Field label="Color" span={2}>
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {PALETTE.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setNewColor(c)}
                     aria-label={`Color ${c}`}
-                    className={`h-6 w-6 rounded-full border-2 transition ${
+                    className={`h-7 w-7 rounded-full border-2 transition ${
                       newColor === c
-                        ? "border-black"
-                        : "border-transparent hover:border-neutral-300"
+                        ? "border-brown"
+                        : "border-transparent hover:border-border-strong"
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -569,7 +519,7 @@ function ReservationFields({
                   type="color"
                   value={newColor}
                   onChange={(e) => setNewColor(e.target.value)}
-                  className="ml-1 h-7 w-10 cursor-pointer rounded border border-[var(--color-border)] bg-white"
+                  className="ml-1 h-8 w-12 cursor-pointer rounded-md border border-border bg-paper"
                 />
               </div>
             </Field>
@@ -602,7 +552,7 @@ function ReservationFields({
         </Field>
       </div>
       <ErrorMsg>{error}</ErrorMsg>
-      <footer className="mt-5 flex justify-end gap-2">
+      <footer className="mt-6 flex justify-end gap-2">
         <button type="button" onClick={onClose} className={btnSecondary}>
           Cancel
         </button>
@@ -693,15 +643,15 @@ function EventFields({ onClose }: { onClose: () => void }) {
               type="checkbox"
               checked={notify}
               onChange={(e) => setNotify(e.target.checked)}
-              className="h-4 w-4 rounded border-[var(--color-border)]"
+              className="h-4 w-4 rounded border-border"
             />
-            <span className="text-[13px] text-neutral-700">
+            <span className="text-sm text-fg-muted">
               Send an email to all members
             </span>
           </label>
         </div>
         <ErrorMsg>{error}</ErrorMsg>
-        <footer className="mt-5 flex justify-end gap-2">
+        <footer className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onClose} className={btnSecondary}>
             Cancel
           </button>
@@ -716,13 +666,13 @@ function EventFields({ onClose }: { onClose: () => void }) {
           onClose={() => !busy && setConfirmNotify(false)}
           maxWidth="sm"
         >
-          <p className="text-[13px] text-neutral-600">
+          <p className="text-sm text-fg-muted">
             This will email every member of Noconomo about{" "}
-            <span className="font-medium text-neutral-900">{title.trim()}</span>{" "}
-            on <span className="font-medium text-neutral-900">{date}</span>. Are
-            you sure?
+            <span className="font-semibold text-brown">{title.trim()}</span> on{" "}
+            <span className="font-semibold text-brown">{date}</span>. Are you
+            sure?
           </p>
-          <footer className="mt-5 flex justify-end gap-2">
+          <footer className="mt-6 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setConfirmNotify(false)}
@@ -763,10 +713,10 @@ function ConfirmDelete({
 }) {
   return (
     <Modal title={label} onClose={() => !busy && onCancel()} maxWidth="sm">
-      <p className="text-[13px] text-neutral-600">
+      <p className="text-sm text-fg-muted">
         {description ?? "This action cannot be undone."}
       </p>
-      <footer className="mt-5 flex justify-end gap-2">
+      <footer className="mt-6 flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
@@ -779,7 +729,7 @@ function ConfirmDelete({
           type="button"
           onClick={onConfirm}
           disabled={busy}
-          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className={btnDanger}
         >
           {busy ? "Working…" : "Delete"}
         </button>
@@ -891,7 +841,7 @@ function EditReservationModal({
           </Field>
         </div>
         <ErrorMsg>{error}</ErrorMsg>
-        <footer className="mt-5 flex items-center justify-between gap-2">
+        <footer className="mt-6 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
@@ -1004,10 +954,10 @@ function EditEventModal({
           </Field>
         </div>
         <ErrorMsg>{error}</ErrorMsg>
-        <p className="mt-3 text-[12px] text-neutral-500">
+        <p className="mt-3 text-sm text-fg-subtle">
           Added by {event.createdByName}
         </p>
-        <footer className="mt-5 flex items-center justify-between gap-2">
+        <footer className="mt-6 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}

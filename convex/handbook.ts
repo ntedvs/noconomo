@@ -32,7 +32,7 @@ export const save = mutation({
     officers: v.array(v.object({ role: v.string(), name: v.string() })),
     choosingWeeksIntro: v.string(),
     choosingWeeksBullets: v.array(v.string()),
-    trashAndRecycling: v.array(v.string()),
+    faqs: v.array(v.object({ question: v.string(), answer: v.string() })),
     serviceProviders: v.array(providerValidator),
   },
   handler: async (ctx, args) => {

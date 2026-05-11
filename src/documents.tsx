@@ -34,13 +34,13 @@ type DocItem = {
 }
 
 const inputCls =
-  "w-full rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm"
-const labelCls =
-  "text-[11px] font-medium tracking-tight text-neutral-600 uppercase"
+  "w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
 const btnPrimary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+  "inline-flex items-center justify-center gap-2 rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
 const btnSecondary =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-black"
+  "inline-flex items-center justify-center gap-2 rounded-full border border-border-strong bg-paper px-4 py-2 text-sm font-semibold text-brown hover:border-sage hover:text-sage-hover"
+const btnDanger =
+  "inline-flex items-center justify-center gap-2 rounded-full bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger-hover disabled:opacity-40"
 
 function formatBytes(n?: number): string {
   if (n === undefined || n === null) return ""
@@ -79,126 +79,117 @@ export default function Documents() {
   const [renaming, setRenaming] = useState<DocItem | null>(null)
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      {/* Header */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
-            Files
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Documents
-          </h1>
-          <p className="mt-2 text-[13px] text-neutral-500">
-            {items === undefined ? (
-              "Loading…"
-            ) : (
-              <>
-                <span className="text-neutral-700">{items.length}</span>{" "}
-                document{items.length === 1 ? "" : "s"}
-              </>
-            )}
-          </p>
-        </div>
-
-        <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
-          <UploadSimple size={14} /> Upload
-        </button>
+    <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
+      <header className="text-center">
+        <h1 className="font-display text-4xl sm:text-5xl">Documents</h1>
+        <p className="mt-3 text-sm text-fg-muted">
+          {items === undefined ? (
+            "Loading…"
+          ) : (
+            <>
+              {items.length} document{items.length === 1 ? "" : "s"}
+            </>
+          )}
+        </p>
       </header>
 
-      {/* List */}
-      {items === undefined ? (
-        <ListSkeleton />
-      ) : items.length === 0 ? (
-        <button
-          onClick={() => setUploadOpen(true)}
-          className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-6 py-16 text-center transition-colors hover:border-neutral-400 hover:bg-white"
-        >
-          <CloudArrowUp size={28} weight="light" className="text-neutral-400" />
-          <div>
-            <div className="text-[14px] font-medium text-neutral-800">
-              No documents yet
-            </div>
-            <div className="mt-1 text-[12px] text-neutral-500">
-              Click to upload your first file.
-            </div>
-          </div>
+      <div className="mt-8 flex justify-center">
+        <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
+          <UploadSimple size={16} weight="bold" /> Upload
         </button>
-      ) : (
-        <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
-          {(items as DocItem[]).map((d, i) => {
-            const canEdit = user?._id === d.uploadedBy
-            const Icon = iconFor(d)
-            const ext = fileExt(d.fileName)
-            return (
-              <li
-                key={d._id}
-                className={[
-                  "group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--color-bg-subtle)]",
-                  i > 0 ? "border-t border-[var(--color-border)]" : "",
-                ].join(" ")}
-              >
-                {d.url && (
-                  <a
-                    href={d.url}
-                    download={d.fileName ?? d.title}
-                    aria-label={`Download ${d.title}`}
-                    className="absolute inset-0 z-0"
-                  />
-                )}
+      </div>
 
-                <span className="pointer-events-none relative grid h-10 w-10 place-items-center rounded-md border border-[var(--color-border)] bg-white text-neutral-600">
-                  <Icon size={18} weight="light" />
-                </span>
+      <section className="mt-10">
+        {items === undefined ? (
+          <ListSkeleton />
+        ) : items.length === 0 ? (
+          <button
+            onClick={() => setUploadOpen(true)}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-strong bg-paper/60 px-6 py-12 text-center transition hover:border-sage hover:bg-paper"
+          >
+            <CloudArrowUp size={28} weight="light" className="text-fg-subtle" />
+            <div>
+              <p className="font-display text-lg text-brown">
+                No documents yet
+              </p>
+              <p className="mt-1 text-sm text-fg-muted">
+                Click to upload your first file.
+              </p>
+            </div>
+          </button>
+        ) : (
+          <ul className="space-y-3">
+            {(items as DocItem[]).map((d) => {
+              const canEdit = user?._id === d.uploadedBy
+              const Icon = iconFor(d)
+              const ext = fileExt(d.fileName)
+              return (
+                <li
+                  key={d._id}
+                  className="group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+                >
+                  {d.url && (
+                    <a
+                      href={d.url}
+                      download={d.fileName ?? d.title}
+                      aria-label={`Download ${d.title}`}
+                      className="absolute inset-0 z-0"
+                    />
+                  )}
 
-                <div className="pointer-events-none relative min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-[14px] font-medium text-black">
-                      {d.title}
-                    </span>
-                    {ext && (
-                      <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
-                        {ext}
+                  <span className="pointer-events-none relative grid h-10 w-10 place-items-center rounded-md border border-border bg-bg-subtle text-brown">
+                    <Icon size={18} weight="light" />
+                  </span>
+
+                  <div className="pointer-events-none relative min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-base font-semibold text-brown">
+                        {d.title}
                       </span>
+                      {ext && (
+                        <span className="text-xs font-semibold text-fg-subtle">
+                          {ext}
+                        </span>
+                      )}
+                    </div>
+                    <div className="truncate text-sm text-fg-muted">
+                      {d.uploaderName}
+                      <span className="mx-1.5 text-fg-subtle">·</span>
+                      <span>
+                        {format(new Date(d._creationTime), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                    {d.notes && (
+                      <div className="mt-1 truncate text-sm text-fg">
+                        {d.notes}
+                      </div>
                     )}
                   </div>
-                  <div className="truncate text-[12px] text-neutral-500">
-                    {d.uploaderName}
-                    <span className="mx-1.5 text-neutral-300">·</span>
-                    <span>
-                      {format(new Date(d._creationTime), "MMM d, yyyy")}
-                    </span>
-                  </div>
-                  {d.notes && (
-                    <div className="mt-1 truncate text-[12px] text-neutral-600">
-                      {d.notes}
+
+                  {canEdit && (
+                    <div className="relative z-10 flex items-center gap-1 opacity-100 transition focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                      <button
+                        onClick={() => setRenaming(d)}
+                        aria-label="Edit"
+                        className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-brown"
+                      >
+                        <PencilSimple size={16} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(d)}
+                        aria-label="Delete"
+                        className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-danger"
+                      >
+                        <Trash size={16} />
+                      </button>
                     </div>
                   )}
-                </div>
-
-                {canEdit && (
-                  <div className="relative z-10 flex items-center gap-0.5 opacity-100 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-                    <button
-                      onClick={() => setRenaming(d)}
-                      aria-label="Edit"
-                      className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-black"
-                    >
-                      <PencilSimple size={14} />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(d)}
-                      aria-label="Delete"
-                      className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash size={14} />
-                    </button>
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
       {uploadOpen && (
         <UploadModal
@@ -229,18 +220,16 @@ export default function Documents() {
 
 function ListSkeleton() {
   return (
-    <ul className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+    <ul className="space-y-3">
       {[0, 1, 2].map((i) => (
         <li
           key={i}
-          className={`grid grid-cols-[40px_1fr] items-center gap-4 px-4 py-3 ${
-            i > 0 ? "border-t border-[var(--color-border)]" : ""
-          }`}
+          className="grid grid-cols-[40px_1fr] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4"
         >
-          <span className="h-10 w-10 animate-pulse rounded-md bg-neutral-100" />
+          <span className="h-10 w-10 animate-pulse rounded-md bg-bg-muted" />
           <div className="space-y-2">
-            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-neutral-100" />
-            <span className="block h-3 w-1/2 animate-pulse rounded bg-neutral-100" />
+            <span className="block h-3.5 w-1/3 animate-pulse rounded bg-bg-muted" />
+            <span className="block h-3 w-1/2 animate-pulse rounded bg-bg-muted" />
           </div>
         </li>
       ))}
@@ -271,7 +260,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brown/30 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -279,15 +268,15 @@ function Modal({
         aria-modal="true"
         className={`w-full ${
           maxWidth === "sm" ? "max-w-sm" : "max-w-md"
-        } overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)]`}
+        } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
-          <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="font-display text-xl text-brown">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-black"
+            className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-brown"
           >
             <X size={16} />
           </button>
@@ -301,7 +290,7 @@ function Modal({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className={labelCls}>{label}</span>
+      <span className="text-sm font-semibold text-brown">{label}</span>
       {children}
     </label>
   )
@@ -310,7 +299,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 function ErrorMsg({ children }: { children: ReactNode }) {
   if (!children) return null
   return (
-    <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+    <p className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
       {children}
     </p>
   )
@@ -342,16 +331,12 @@ function ConfirmModal({
   }
   return (
     <Modal title={title} onClose={() => !busy && onCancel()} maxWidth="sm">
-      <p className="text-[13px] text-neutral-600">{message}</p>
+      <p className="text-base text-fg">{message}</p>
       <footer className="mt-5 flex justify-end gap-2">
         <button onClick={onCancel} disabled={busy} className={btnSecondary}>
           Cancel
         </button>
-        <button
-          onClick={run}
-          disabled={busy}
-          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
-        >
+        <button onClick={run} disabled={busy} className={btnDanger}>
           {busy ? "Deleting…" : confirmLabel}
         </button>
       </footer>
@@ -499,31 +484,31 @@ function UploadModal({
             if (f) pickFile(f)
           }}
           className={[
-            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition-colors",
+            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition",
             dragging
-              ? "border-black bg-[var(--color-bg-subtle)]"
-              : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:border-neutral-400 hover:bg-white",
+              ? "border-sage bg-sage-soft/40"
+              : "border-border-strong bg-bg-subtle hover:border-sage hover:bg-paper",
           ].join(" ")}
         >
-          <CloudArrowUp size={24} weight="light" className="text-neutral-400" />
+          <CloudArrowUp size={24} weight="light" className="text-fg-subtle" />
           {file ? (
             <>
-              <div className="text-[13px] font-medium text-black">
+              <div className="text-sm font-semibold text-brown">
                 {file.name}
               </div>
-              <div className="font-mono text-[11px] text-neutral-500 tabular-nums">
+              <div className="text-xs text-fg-muted tabular-nums">
                 {formatBytes(file.size)}
               </div>
-              <div className="mt-1 text-[11px] text-neutral-500">
+              <div className="mt-1 text-xs text-fg-subtle">
                 Click to choose a different file
               </div>
             </>
           ) : (
             <>
-              <div className="text-[13px] font-medium text-neutral-800">
+              <div className="text-sm font-semibold text-brown">
                 Drop file here or click to browse
               </div>
-              <div className="text-[11px] text-neutral-500">Any file type</div>
+              <div className="text-xs text-fg-muted">Any file type</div>
             </>
           )}
           <input
@@ -566,7 +551,7 @@ function UploadModal({
             disabled={!file || !title.trim() || uploading}
             className={btnPrimary}
           >
-            <UploadSimple size={14} />
+            <UploadSimple size={16} weight="bold" />
             {uploading ? "Uploading…" : "Upload"}
           </button>
         </footer>
