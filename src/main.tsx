@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route, Outlet } from "react-router"
 import "./index.css"
 import Admin from "./admin"
 import AdminEmail from "./admin-email"
-import AdminHandbook from "./admin-handbook"
+import AdminGuide from "./admin-guide"
 import App from "./app.tsx"
 import { AuthProvider, RequireAuth } from "./auth"
 import Bulletins from "./bulletins"
@@ -13,7 +13,7 @@ import Calendar from "./calendar"
 import Documents from "./documents"
 import Expenses from "./expenses"
 import Gallery from "./gallery"
-import Handbook from "./handbook"
+import Guide from "./guide"
 import Members from "./members"
 import Napkin from "./napkin"
 import { Nav } from "./nav"
@@ -72,6 +72,14 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
+                path="/gallery/:folderId"
+                element={
+                  <RequireAuth>
+                    <Gallery />
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/store"
                 element={
                   <RequireAuth>
@@ -80,10 +88,10 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
-                path="/handbook"
+                path="/guide"
                 element={
                   <RequireAuth>
-                    <Handbook />
+                    <Guide />
                   </RequireAuth>
                 }
               />
@@ -120,10 +128,10 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
-                path="/admin/handbook"
+                path="/admin/guide"
                 element={
                   <RequireAuth>
-                    <AdminHandbook />
+                    <AdminGuide />
                   </RequireAuth>
                 }
               />

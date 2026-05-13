@@ -17,6 +17,9 @@ type Member = {
   shares?: number
   phoneNumber?: string
   family?: string
+  address?: string
+  director?: boolean
+  boardMember?: boolean
 }
 
 const FAMILIES = ["Abbott", "Pirie", "Rice", "Guest"] as const
@@ -177,7 +180,7 @@ export default function Members() {
                   ].join(" ")}
                 >
                   <span className="grid h-10 w-10 place-items-center rounded-full bg-sage-soft text-sm font-semibold text-brown">
-                    {initials(u.name) || "—"}
+                    {initials(u.name) || "-"}
                   </span>
 
                   <div className="min-w-0">
@@ -251,12 +254,12 @@ function Modal({
   title,
   onClose,
   children,
-  maxWidth = "md",
+  maxWidth = "lg",
 }: {
   title: string
   onClose: () => void
   children: ReactNode
-  maxWidth?: "sm" | "md"
+  maxWidth?: "sm" | "md" | "lg"
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -275,7 +278,11 @@ function Modal({
         role="dialog"
         aria-modal="true"
         className={`w-full ${
-          maxWidth === "sm" ? "max-w-sm" : "max-w-md"
+          maxWidth === "sm"
+            ? "max-w-sm"
+            : maxWidth === "md"
+              ? "max-w-md"
+              : "max-w-xl"
         } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)]`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -335,6 +342,9 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
   const [shares, setShares] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [family, setFamily] = useState("")
+  const [address, setAddress] = useState("")
+  const [director, setDirector] = useState(false)
+  const [boardMember, setBoardMember] = useState(false)
   const [admin, setAdmin] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -360,7 +370,10 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
         generation: generation || undefined,
         phoneNumber: phoneDigits || undefined,
         family: family || undefined,
+        address: address || undefined,
         ...(sharesNum !== undefined ? { shares: sharesNum } : {}),
+        director,
+        boardMember,
         admin,
       })
       onClose()
@@ -390,7 +403,7 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setFamily(e.target.value)}
               className={inputCls}
             >
-              <option value="">—</option>
+              <option value="">-</option>
               {FAMILIES.map((f) => (
                 <option key={f} value={f}>
                   {f}
@@ -430,11 +443,19 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
             />
           </Field>
           <Field label="Generation">
-            <input
+            <select
               value={generation}
               onChange={(e) => setGeneration(e.target.value)}
               className={inputCls}
-            />
+            >
+              <option value=""></option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
           </Field>
           <Field label="Shares" span={2}>
             <input
@@ -445,15 +466,42 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
               className={inputCls}
             />
           </Field>
-          <label className="flex items-center gap-2 text-sm text-brown sm:col-span-2">
+          <Field label="Address" span={2}>
             <input
-              type="checkbox"
-              checked={admin}
-              onChange={(e) => setAdmin(e.target.checked)}
-              className="h-4 w-4 accent-sage"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className={inputCls}
             />
-            <span>Admin</span>
-          </label>
+          </Field>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:col-span-2">
+            <label className="flex items-center gap-2 text-sm text-brown">
+              <input
+                type="checkbox"
+                checked={director}
+                onChange={(e) => setDirector(e.target.checked)}
+                className="h-4 w-4 accent-sage"
+              />
+              <span>Director</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-brown">
+              <input
+                type="checkbox"
+                checked={boardMember}
+                onChange={(e) => setBoardMember(e.target.checked)}
+                className="h-4 w-4 accent-sage"
+              />
+              <span>Board member</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-brown">
+              <input
+                type="checkbox"
+                checked={admin}
+                onChange={(e) => setAdmin(e.target.checked)}
+                className="h-4 w-4 accent-sage"
+              />
+              <span>Admin</span>
+            </label>
+          </div>
         </div>
         <ErrorMsg>{err}</ErrorMsg>
         <footer className="mt-6 flex justify-end gap-3">
@@ -495,6 +543,9 @@ function EditMemberModal({
     formatPhone(member.phoneNumber),
   )
   const [family, setFamily] = useState(member.family ?? "")
+  const [address, setAddress] = useState(member.address ?? "")
+  const [director, setDirector] = useState(member.director ?? false)
+  const [boardMember, setBoardMember] = useState(member.boardMember ?? false)
   const [admin, setAdmin] = useState(member.admin)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -520,8 +571,9 @@ function EditMemberModal({
         generation,
         phoneNumber: phoneDigits,
         family,
+        address,
         ...(sharesNum !== undefined ? { shares: sharesNum } : {}),
-        ...(isAdmin ? { email, admin } : {}),
+        ...(isAdmin ? { email, admin, director, boardMember } : {}),
       })
       onClose()
     } catch (e) {
@@ -535,22 +587,8 @@ function EditMemberModal({
     <>
       <Modal title="Edit member" onClose={onClose}>
         <form onSubmit={submit}>
-          <div className="mb-5 flex items-center gap-3 rounded-md border border-border bg-bg-subtle px-4 py-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-paper text-sm font-semibold text-brown ring-1 ring-border ring-inset">
-              {initials(member.name) || "—"}
-            </span>
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold text-brown">
-                {member.name}
-              </div>
-              <div className="truncate text-sm text-fg-muted">
-                {member.email}
-              </div>
-            </div>
-          </div>
-
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name" span={2}>
+            <Field label="Name">
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -558,13 +596,13 @@ function EditMemberModal({
                 className={inputCls}
               />
             </Field>
-            <Field label="Family" span={2}>
+            <Field label="Family">
               <select
                 value={family}
                 onChange={(e) => setFamily(e.target.value)}
                 className={inputCls}
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 {FAMILIES.map((f) => (
                   <option key={f} value={f}>
                     {f}
@@ -572,7 +610,7 @@ function EditMemberModal({
                 ))}
               </select>
             </Field>
-            <Field label="Email" span={2}>
+            <Field label="Email">
               <input
                 type="email"
                 value={email}
@@ -581,7 +619,7 @@ function EditMemberModal({
                 className={`${inputCls} disabled:bg-bg-subtle disabled:text-fg-muted`}
               />
             </Field>
-            <Field label="Phone Number" span={2}>
+            <Field label="Phone Number">
               <input
                 type="tel"
                 value={phoneNumber}
@@ -604,13 +642,21 @@ function EditMemberModal({
               />
             </Field>
             <Field label="Generation">
-              <input
+              <select
                 value={generation}
                 onChange={(e) => setGeneration(e.target.value)}
                 className={inputCls}
-              />
+              >
+                <option value=""></option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
             </Field>
-            <Field label="Shares" span={2}>
+            <Field label="Shares">
               <input
                 type="number"
                 step="any"
@@ -619,16 +665,43 @@ function EditMemberModal({
                 className={inputCls}
               />
             </Field>
+            <Field label="Address">
+              <input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className={inputCls}
+              />
+            </Field>
             {isAdmin && (
-              <label className="flex items-center gap-2 text-sm text-brown sm:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={admin}
-                  onChange={(e) => setAdmin(e.target.checked)}
-                  className="h-4 w-4 accent-sage"
-                />
-                <span>Admin</span>
-              </label>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm text-brown">
+                  <input
+                    type="checkbox"
+                    checked={director}
+                    onChange={(e) => setDirector(e.target.checked)}
+                    className="h-4 w-4 accent-sage"
+                  />
+                  <span>Director</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm text-brown">
+                  <input
+                    type="checkbox"
+                    checked={boardMember}
+                    onChange={(e) => setBoardMember(e.target.checked)}
+                    className="h-4 w-4 accent-sage"
+                  />
+                  <span>Board member</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm text-brown">
+                  <input
+                    type="checkbox"
+                    checked={admin}
+                    onChange={(e) => setAdmin(e.target.checked)}
+                    className="h-4 w-4 accent-sage"
+                  />
+                  <span>Admin</span>
+                </label>
+              </div>
             )}
           </div>
           <ErrorMsg>{err}</ErrorMsg>

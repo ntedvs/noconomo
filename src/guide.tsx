@@ -1,38 +1,49 @@
 import { useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
-import { handbookDefaults, type HandbookContent } from "./handbook-defaults"
+import type { GuideContent } from "./guide-types"
 
-export default function Handbook() {
+export default function Guide() {
   const { token } = useAuth()
-  const stored = useQuery(api.handbook.get, { token })
-  const c: HandbookContent =
-    stored === undefined || stored === null
-      ? handbookDefaults
-      : (stored as HandbookContent)
+  const stored = useQuery(api.guide.get, { token })
+
+  if (stored === undefined) {
+    return (
+      <main className="mx-auto max-w-3xl px-5 py-14 text-sm text-fg-subtle sm:py-20">
+        Loading…
+      </main>
+    )
+  }
+  if (stored === null) {
+    return (
+      <main className="mx-auto max-w-3xl px-5 py-14 text-base text-fg-muted sm:py-20">
+        No guide content yet.
+      </main>
+    )
+  }
+  const c = stored as GuideContent
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
       <header className="text-center">
-        <h1 className="font-display text-4xl sm:text-5xl">Handbook</h1>
+        <h1 className="font-display text-4xl sm:text-5xl">Guide</h1>
       </header>
 
       <article className="mt-12 space-y-10 text-fg">
         <section>
-          <h2 className="font-display text-xl text-brown">Details</h2>
+          <h2 className="font-display text-xl text-brown">Address</h2>
           <p className="mt-2">{c.address}</p>
-          <p className="mt-1">{c.phoneNumber}</p>
         </section>
 
         <section>
           <h2 className="font-display text-xl text-brown">Wifi</h2>
           <p className="mt-2">
             <span className="font-semibold text-brown">Network:</span>{" "}
-            {c.wifiName || "—"}
+            {c.wifiName || "-"}
           </p>
           <p className="mt-1">
             <span className="font-semibold text-brown">Password:</span>{" "}
-            {c.wifiPassword || "—"}
+            {c.wifiPassword || "-"}
           </p>
         </section>
 

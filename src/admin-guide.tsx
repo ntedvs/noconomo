@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
 import {
-  handbookDefaults,
+  emptyGuide,
   type Faq,
-  type HandbookContent,
+  type GuideContent,
   type Officer,
   type ServiceProvider,
-} from "./handbook-defaults"
+} from "./guide-types"
 import { useTitle } from "./use-title"
 
 const emptyProvider = (): ServiceProvider => ({
@@ -23,12 +23,12 @@ const emptyProvider = (): ServiceProvider => ({
   notes: "",
 })
 
-export default function AdminHandbook() {
-  useTitle("Edit handbook")
+export default function AdminGuide() {
+  useTitle("Edit guide")
   const { token, user } = useAuth()
-  const stored = useQuery(api.handbook.get, { token })
-  const save = useMutation(api.handbook.save)
-  const [content, setContent] = useState<HandbookContent | null>(null)
+  const stored = useQuery(api.guide.get, { token })
+  const save = useMutation(api.guide.save)
+  const [content, setContent] = useState<GuideContent | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -37,23 +37,23 @@ export default function AdminHandbook() {
     if (stored === undefined) return
     if (content === null) {
       if (stored === null) {
-        setContent(handbookDefaults)
+        setContent(emptyGuide)
       } else {
         const {
           _id: _i,
           _creationTime: _c,
           ...rest
-        } = stored as Partial<HandbookContent> & {
+        } = stored as Partial<GuideContent> & {
           _id?: unknown
           _creationTime?: unknown
         }
         setContent({
-          ...handbookDefaults,
+          ...emptyGuide,
           ...rest,
           wifiName: rest.wifiName ?? "",
           wifiPassword: rest.wifiPassword ?? "",
           faqs: rest.faqs ?? [],
-        } as HandbookContent)
+        } as GuideContent)
       }
     }
   }, [stored, content])
@@ -98,13 +98,13 @@ export default function AdminHandbook() {
     }
   }
 
-  const update = (patch: Partial<HandbookContent>) =>
+  const update = (patch: Partial<GuideContent>) =>
     setContent({ ...content, ...patch })
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-4xl sm:text-5xl">Edit handbook</h1>
+        <h1 className="font-display text-4xl sm:text-5xl">Edit guide</h1>
         <div className="flex flex-wrap items-center gap-3">
           {msg && <span className="text-sm text-sage-hover">{msg}</span>}
           {err && <span className="text-sm text-danger">{err}</span>}
@@ -123,14 +123,6 @@ export default function AdminHandbook() {
           <input
             value={content.address}
             onChange={(e) => update({ address: e.target.value })}
-            className="w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
-          />
-        </Section>
-
-        <Section title="Phone Number">
-          <input
-            value={content.phoneNumber}
-            onChange={(e) => update({ phoneNumber: e.target.value })}
             className="w-full rounded-md border border-border bg-bg px-3 py-2 text-base"
           />
         </Section>

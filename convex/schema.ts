@@ -11,6 +11,9 @@ export default defineSchema({
     shares: v.optional(v.number()),
     phoneNumber: v.optional(v.string()),
     family: v.optional(v.string()),
+    address: v.optional(v.string()),
+    director: v.optional(v.boolean()),
+    boardMember: v.optional(v.boolean()),
   }).index("by_email", ["email"]),
 
   bulletins: defineTable({
@@ -18,9 +21,8 @@ export default defineSchema({
     createdBy: v.id("users"),
   }),
 
-  handbook: defineTable({
+  guide: defineTable({
     address: v.string(),
-    phoneNumber: v.string(),
     wifiName: v.optional(v.string()),
     wifiPassword: v.optional(v.string()),
     officers: v.array(v.object({ role: v.string(), name: v.string() })),
@@ -56,7 +58,16 @@ export default defineSchema({
     title: v.optional(v.string()),
     contentType: v.optional(v.string()),
     posterStorageId: v.optional(v.id("_storage")),
-  }).index("by_uploadedBy", ["uploadedBy"]),
+    folderId: v.optional(v.id("folders")),
+  })
+    .index("by_uploadedBy", ["uploadedBy"])
+    .index("by_folder", ["folderId"]),
+
+  folders: defineTable({
+    name: v.string(),
+    parentFolderId: v.optional(v.id("folders")),
+    createdBy: v.id("users"),
+  }).index("by_parent", ["parentFolderId"]),
 
   sessions: defineTable({
     userId: v.id("users"),

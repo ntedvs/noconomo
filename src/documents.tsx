@@ -82,15 +82,6 @@ export default function Documents() {
     <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
       <header className="text-center">
         <h1 className="font-display text-4xl sm:text-5xl">Documents</h1>
-        <p className="mt-3 text-sm text-fg-muted">
-          {items === undefined ? (
-            "Loading…"
-          ) : (
-            <>
-              {items.length} document{items.length === 1 ? "" : "s"}
-            </>
-          )}
-        </p>
       </header>
 
       <div className="mt-8 flex justify-center">
@@ -514,7 +505,6 @@ function UploadModal({
           <input
             type="file"
             onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
-            required
             className="hidden"
           />
         </label>

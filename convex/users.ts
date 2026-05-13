@@ -26,6 +26,9 @@ export const list = query({
       shares: u.shares,
       phoneNumber: u.phoneNumber,
       family: u.family,
+      address: u.address,
+      director: u.director ?? false,
+      boardMember: u.boardMember ?? false,
     }))
   },
 })
@@ -41,6 +44,9 @@ export const update = mutation({
     shares: v.optional(v.number()),
     phoneNumber: v.optional(v.string()),
     family: v.optional(v.string()),
+    address: v.optional(v.string()),
+    director: v.optional(v.boolean()),
+    boardMember: v.optional(v.boolean()),
     admin: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -73,6 +79,9 @@ export const update = mutation({
     if (args.family !== undefined) {
       patch.family = args.family.trim() || undefined
     }
+    if (args.address !== undefined) {
+      patch.address = args.address.trim() || undefined
+    }
     if (args.email !== undefined) {
       if (!isAdmin) throw new Error("Only admins can change email")
       const email = args.email.trim().toLowerCase()
@@ -92,6 +101,15 @@ export const update = mutation({
       if (!isAdmin) throw new Error("Only admins can change admin status")
       patch.admin = args.admin
     }
+    if (args.director !== undefined) {
+      if (!isAdmin) throw new Error("Only admins can change director status")
+      patch.director = args.director
+    }
+    if (args.boardMember !== undefined) {
+      if (!isAdmin)
+        throw new Error("Only admins can change board member status")
+      patch.boardMember = args.boardMember
+    }
 
     await ctx.db.patch(args.userId, patch)
     return null
@@ -108,6 +126,9 @@ export const create = mutation({
     shares: v.optional(v.number()),
     phoneNumber: v.optional(v.string()),
     family: v.optional(v.string()),
+    address: v.optional(v.string()),
+    director: v.optional(v.boolean()),
+    boardMember: v.optional(v.boolean()),
     admin: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -137,6 +158,9 @@ export const create = mutation({
         ? { phoneNumber: args.phoneNumber.trim() }
         : {}),
       ...(args.family?.trim() ? { family: args.family.trim() } : {}),
+      ...(args.address?.trim() ? { address: args.address.trim() } : {}),
+      ...(args.director ? { director: true } : {}),
+      ...(args.boardMember ? { boardMember: true } : {}),
       ...(args.admin ? { admin: true } : {}),
     })
   },

@@ -17,7 +17,7 @@ export const get = query({
   args: { token: v.union(v.string(), v.null()) },
   handler: async (ctx, args) => {
     await requireUser(ctx, args.token)
-    const row = await ctx.db.query("handbook").take(1)
+    const row = await ctx.db.query("guide").take(1)
     return row[0] ?? null
   },
 })
@@ -26,7 +26,6 @@ export const save = mutation({
   args: {
     token: v.union(v.string(), v.null()),
     address: v.string(),
-    phoneNumber: v.string(),
     wifiName: v.string(),
     wifiPassword: v.string(),
     officers: v.array(v.object({ role: v.string(), name: v.string() })),
@@ -38,11 +37,11 @@ export const save = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.token)
     const { token: _token, ...data } = args
-    const existing = await ctx.db.query("handbook").take(1)
+    const existing = await ctx.db.query("guide").take(1)
     if (existing[0]) {
       await ctx.db.replace(existing[0]._id, data)
     } else {
-      await ctx.db.insert("handbook", data)
+      await ctx.db.insert("guide", data)
     }
     return null
   },

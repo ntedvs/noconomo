@@ -334,7 +334,7 @@ function MonthGrid({
                       key={e._id}
                       type="button"
                       onClick={() => onEditEvent(e)}
-                      title={`${e.title} — added by ${e.createdByName}`}
+                      title={`${e.title} - added by ${e.createdByName}`}
                       className="flex items-center gap-1.5 truncate rounded-full bg-sage px-2 py-0.5 text-left text-xs font-semibold text-white hover:bg-sage-hover"
                     >
                       <span className="h-1 w-1 shrink-0 rounded-full bg-white/80" />

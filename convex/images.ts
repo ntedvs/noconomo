@@ -17,10 +17,15 @@ export const add = mutation({
     title: v.optional(v.string()),
     contentType: v.optional(v.string()),
     posterStorageId: v.optional(v.id("_storage")),
+    folderId: v.optional(v.id("folders")),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
     const title = args.title?.trim()
+    if (args.folderId) {
+      const folder = await ctx.db.get(args.folderId)
+      if (!folder) throw new Error("Folder not found")
+    }
     await ctx.db.insert("images", {
       storageId: args.storageId,
       uploadedBy: user._id,
@@ -29,6 +34,7 @@ export const add = mutation({
       ...(args.posterStorageId
         ? { posterStorageId: args.posterStorageId }
         : {}),
+      ...(args.folderId ? { folderId: args.folderId } : {}),
     })
     return null
   },
@@ -52,6 +58,7 @@ export const list = query({
           uploadedBy: r.uploadedBy,
           uploaderName: uploader?.name ?? "Unknown",
           title: r.title,
+          folderId: r.folderId,
           _creationTime: r._creationTime,
         }
       }),

@@ -4,8 +4,8 @@ import { useTitle } from "./use-title"
 
 const pages: { to: string; title: string; description: string }[] = [
   {
-    to: "/admin/handbook",
-    title: "Handbook",
+    to: "/admin/guide",
+    title: "Guide",
     description: "Edit address, wifi, officers, FAQ, and service providers.",
   },
   {

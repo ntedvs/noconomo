@@ -39,15 +39,15 @@ export function Nav() {
             {/* <NavLink to="/store" className={linkClass}>
               Store
             </NavLink> */}
-            <NavLink to="/handbook" className={linkClass}>
-              Handbook
+            <NavLink to="/guide" className={linkClass}>
+              Guide
             </NavLink>
             <NavLink to="/documents" className={linkClass}>
               Documents
             </NavLink>
-            <NavLink to="/expenses" className={linkClass}>
+            {/* <NavLink to="/expenses" className={linkClass}>
               Expenses
-            </NavLink>
+            </NavLink> */}
             <NavLink to="/napkin" className={linkClass}>
               Napkin
             </NavLink>
