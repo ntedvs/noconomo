@@ -104,6 +104,14 @@ createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
+                path="/documents/:folderId"
+                element={
+                  <RequireAuth>
+                    <Documents />
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/expenses"
                 element={
                   <RequireAuth>

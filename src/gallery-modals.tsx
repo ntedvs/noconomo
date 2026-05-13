@@ -67,9 +67,11 @@ export function RenameModal({
 
 export function NewFolderModal({
   parentFolderId,
+  kind,
   onClose,
 }: {
   parentFolderId?: Id<"folders">
+  kind?: "gallery" | "documents"
   onClose: () => void
 }) {
   const { token } = useAuth()
@@ -87,6 +89,7 @@ export function NewFolderModal({
         token,
         name,
         ...(parentFolderId ? { parentFolderId } : {}),
+        ...(kind ? { kind } : {}),
       })
       onClose()
     } catch (e) {

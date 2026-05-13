@@ -67,7 +67,10 @@ export default defineSchema({
     name: v.string(),
     parentFolderId: v.optional(v.id("folders")),
     createdBy: v.id("users"),
-  }).index("by_parent", ["parentFolderId"]),
+    kind: v.optional(v.union(v.literal("gallery"), v.literal("documents"))),
+  })
+    .index("by_parent", ["parentFolderId"])
+    .index("by_kind", ["kind"]),
 
   sessions: defineTable({
     userId: v.id("users"),
@@ -98,7 +101,10 @@ export default defineSchema({
     fileName: v.optional(v.string()),
     size: v.optional(v.number()),
     notes: v.optional(v.string()),
-  }).index("by_uploadedBy", ["uploadedBy"]),
+    folderId: v.optional(v.id("folders")),
+  })
+    .index("by_uploadedBy", ["uploadedBy"])
+    .index("by_folder", ["folderId"]),
 
   events: defineTable({
     date: v.string(),

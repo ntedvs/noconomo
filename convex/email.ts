@@ -45,11 +45,30 @@ export const sendCodeEmail = internalAction({
   },
 })
 
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
+
 export const broadcast = action({
   args: {
     token: v.union(v.string(), v.null()),
     subject: v.string(),
     body: v.string(),
+    audience: v.optional(
+      v.union(
+        v.literal("all"),
+        v.literal("shareholders"),
+        v.literal("directors"),
+        v.literal("boardMembers"),
+      ),
+    ),
+    attachments: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          filename: v.string(),
+          contentType: v.optional(v.string()),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const subject = args.subject.trim()
@@ -58,19 +77,50 @@ export const broadcast = action({
     if (!body) throw new Error("Body required")
     const ccs: string[] = await ctx.runQuery(internal.users.adminMemberEmails, {
       token: args.token,
+      audience: args.audience ?? "all",
     })
+
+    const attachmentSpecs = args.attachments ?? []
+    const attachments: {
+      filename: string
+      content: Buffer
+      contentType?: string
+    }[] = []
+    let totalBytes = 0
+    for (const spec of attachmentSpecs) {
+      const blob = await ctx.storage.get(spec.storageId)
+      if (!blob) throw new Error(`Attachment missing: ${spec.filename}`)
+      const buffer = Buffer.from(await blob.arrayBuffer())
+      totalBytes += buffer.length
+      if (totalBytes > MAX_ATTACHMENT_BYTES) {
+        throw new Error("Attachments exceed 25 MB total")
+      }
+      attachments.push({
+        filename: spec.filename,
+        content: buffer,
+        ...(spec.contentType ? { contentType: spec.contentType } : {}),
+      })
+    }
+
     const { from, transport } = transporter()
     const html = `<div style="white-space:pre-wrap;font-family:sans-serif">${escapeHtml(
       body,
     )}</div>`
-    await transport.sendMail({
-      from,
-      to: from,
-      cc: ccs,
-      subject,
-      text: body,
-      html,
-    })
+    try {
+      await transport.sendMail({
+        from,
+        to: from,
+        cc: ccs,
+        subject,
+        text: body,
+        html,
+        ...(attachments.length > 0 ? { attachments } : {}),
+      })
+    } finally {
+      await Promise.allSettled(
+        attachmentSpecs.map((s) => ctx.storage.delete(s.storageId)),
+      )
+    }
     return { recipients: ccs.length }
   },
 })

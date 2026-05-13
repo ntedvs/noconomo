@@ -1,4 +1,5 @@
 import {
+  CaretRight,
   CloudArrowUp,
   FileArchive,
   FileAudio,
@@ -7,6 +8,8 @@ import {
   FileVideo,
   FileXls,
   File as FileIcon,
+  Folder,
+  FolderPlus,
   PencilSimple,
   Trash,
   UploadSimple,
@@ -14,10 +17,17 @@ import {
 } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { format } from "date-fns"
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { Link, useNavigate, useParams } from "react-router"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
+import {
+  DeleteFolderModal,
+  NewFolderModal,
+  RenameFolderModal,
+} from "./gallery-modals"
+import type { FolderRow } from "./gallery-shared"
 import { useTitle } from "./use-title"
 
 type DocItem = {
@@ -30,6 +40,7 @@ type DocItem = {
   notes?: string
   uploadedBy: Id<"users">
   uploaderName: string
+  folderId?: Id<"folders">
   _creationTime: number
 }
 
@@ -72,28 +83,103 @@ function iconFor(d: DocItem) {
 export default function Documents() {
   useTitle("Documents")
   const { token, user } = useAuth()
+  const params = useParams<{ folderId?: string }>()
+  const navigate = useNavigate()
+  const folderId = params.folderId as Id<"folders"> | undefined
+
   const items = useQuery(api.documents.list, { token })
+  const folders = useQuery(api.folders.list, { token, kind: "documents" })
   const removeDoc = useMutation(api.documents.remove)
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<DocItem | null>(null)
   const [renaming, setRenaming] = useState<DocItem | null>(null)
+  const [renamingFolder, setRenamingFolder] = useState<FolderRow | null>(null)
+  const [deletingFolder, setDeletingFolder] = useState<FolderRow | null>(null)
+
+  const allFolders = (folders ?? []) as FolderRow[]
+  const allItems = (items ?? []) as DocItem[]
+
+  const currentFolder = folderId
+    ? allFolders.find((f) => f._id === folderId)
+    : undefined
+
+  useEffect(() => {
+    if (folderId && folders !== undefined && !currentFolder) {
+      navigate("/documents", { replace: true })
+    }
+  }, [folderId, folders, currentFolder, navigate])
+
+  const childFolders = useMemo(
+    () =>
+      allFolders
+        .filter((f) => (f.parentFolderId ?? null) === (folderId ?? null))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [allFolders, folderId],
+  )
+
+  const childItems = useMemo(
+    () => allItems.filter((d) => (d.folderId ?? null) === (folderId ?? null)),
+    [allItems, folderId],
+  )
+
+  const breadcrumbs = useMemo(() => {
+    const chain: FolderRow[] = []
+    let cursor: Id<"folders"> | undefined = folderId
+    const byId = new Map(allFolders.map((f) => [f._id, f]))
+    while (cursor) {
+      const f = byId.get(cursor)
+      if (!f) break
+      chain.unshift(f)
+      cursor = f.parentFolderId
+    }
+    return chain
+  }, [allFolders, folderId])
+
+  const loading = items === undefined || folders === undefined
+  const empty = !loading && childFolders.length === 0 && childItems.length === 0
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-14 sm:py-20">
       <header className="text-center">
         <h1 className="font-display text-4xl sm:text-5xl">Documents</h1>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button
+            onClick={() => setNewFolderOpen(true)}
+            className={btnSecondary}
+          >
+            <FolderPlus size={16} weight="bold" /> New folder
+          </button>
+          <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
+            <UploadSimple size={16} weight="bold" /> Upload
+          </button>
+        </div>
       </header>
 
-      <div className="mt-8 flex justify-center">
-        <button onClick={() => setUploadOpen(true)} className={btnPrimary}>
-          <UploadSimple size={16} weight="bold" /> Upload
-        </button>
-      </div>
+      {(breadcrumbs.length > 0 || folderId) && (
+        <nav className="mt-8 flex flex-wrap items-center gap-1.5 text-sm text-fg-muted">
+          <Link to="/documents" className="hover:text-brown">
+            Documents
+          </Link>
+          {breadcrumbs.map((f, i) => (
+            <span key={f._id} className="flex items-center gap-1.5">
+              <CaretRight size={12} className="text-border-strong" />
+              {i === breadcrumbs.length - 1 ? (
+                <span className="font-semibold text-brown">{f.name}</span>
+              ) : (
+                <Link to={`/documents/${f._id}`} className="hover:text-brown">
+                  {f.name}
+                </Link>
+              )}
+            </span>
+          ))}
+        </nav>
+      )}
 
-      <section className="mt-10">
-        {items === undefined ? (
+      <section className="mt-8">
+        {loading ? (
           <ListSkeleton />
-        ) : items.length === 0 ? (
+        ) : empty ? (
           <button
             onClick={() => setUploadOpen(true)}
             className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-strong bg-paper/60 px-6 py-12 text-center transition hover:border-sage hover:bg-paper"
@@ -101,7 +187,7 @@ export default function Documents() {
             <CloudArrowUp size={28} weight="light" className="text-fg-subtle" />
             <div>
               <p className="font-display text-lg text-brown">
-                No documents yet
+                {folderId ? "This folder is empty" : "No documents yet"}
               </p>
               <p className="mt-1 text-sm text-fg-muted">
                 Click to upload your first file.
@@ -110,8 +196,51 @@ export default function Documents() {
           </button>
         ) : (
           <ul className="space-y-3">
-            {(items as DocItem[]).map((d) => {
-              const canEdit = user?._id === d.uploadedBy
+            {childFolders.map((f) => {
+              const canEditFolder =
+                user?._id === f.createdBy || user?.admin === true
+              return (
+                <li
+                  key={f._id}
+                  className="group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+                >
+                  <Link
+                    to={`/documents/${f._id}`}
+                    aria-label={`Open ${f.name}`}
+                    className="absolute inset-0 z-0"
+                  />
+                  <span className="pointer-events-none relative grid h-10 w-10 place-items-center rounded-md border border-border bg-sage-soft/60 text-sage">
+                    <Folder size={20} weight="duotone" />
+                  </span>
+                  <div className="pointer-events-none relative min-w-0">
+                    <div className="truncate text-base font-semibold text-brown">
+                      {f.name}
+                    </div>
+                    <div className="text-sm text-fg-muted">Folder</div>
+                  </div>
+                  {canEditFolder && (
+                    <div className="relative z-10 flex items-center gap-1 opacity-100 transition focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                      <button
+                        onClick={() => setRenamingFolder(f)}
+                        aria-label="Rename folder"
+                        className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-brown"
+                      >
+                        <PencilSimple size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingFolder(f)}
+                        aria-label="Delete folder"
+                        className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-muted hover:text-danger"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+            {childItems.map((d) => {
+              const canEdit = user?._id === d.uploadedBy || user?.admin === true
               const Icon = iconFor(d)
               const ext = fileExt(d.fileName)
               return (
@@ -184,8 +313,31 @@ export default function Documents() {
 
       {uploadOpen && (
         <UploadModal
+          folderId={folderId}
           onClose={() => setUploadOpen(false)}
           onUploaded={() => setUploadOpen(false)}
+        />
+      )}
+
+      {newFolderOpen && (
+        <NewFolderModal
+          parentFolderId={folderId}
+          kind="documents"
+          onClose={() => setNewFolderOpen(false)}
+        />
+      )}
+
+      {renamingFolder && (
+        <RenameFolderModal
+          folder={renamingFolder}
+          onClose={() => setRenamingFolder(null)}
+        />
+      )}
+
+      {deletingFolder && (
+        <DeleteFolderModal
+          folder={deletingFolder}
+          onClose={() => setDeletingFolder(null)}
         />
       )}
 
@@ -401,61 +553,86 @@ function RenameModal({ doc, onClose }: { doc: DocItem; onClose: () => void }) {
 /* ---------- Upload ---------- */
 
 function UploadModal({
+  folderId,
   onClose,
   onUploaded,
 }: {
+  folderId?: Id<"folders">
   onClose: () => void
   onUploaded: () => void
 }) {
   const { token } = useAuth()
   const generateUploadUrl = useMutation(api.documents.generateUploadUrl)
   const addDoc = useMutation(api.documents.add)
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [title, setTitle] = useState("")
   const [notes, setNotes] = useState("")
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState<{
+    done: number
+    total: number
+  } | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
 
-  const pickFile = (f: File | null) => {
-    setFile(f)
-    if (f && !title.trim()) {
-      setTitle(f.name.replace(/\.[^.]+$/, ""))
+  const singleFile = files.length === 1 ? files[0] : null
+
+  const pickFiles = (fs: File[]) => {
+    setFiles(fs)
+    if (fs.length === 1 && !title.trim()) {
+      setTitle(fs[0].name.replace(/\.[^.]+$/, ""))
+    }
+    if (fs.length !== 1) {
+      setTitle("")
+      setNotes("")
     }
   }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) return
-    if (!title.trim()) {
+    if (files.length === 0) return
+    if (files.length === 1 && !title.trim()) {
       setErr("Title required")
       return
     }
     setErr(null)
     setUploading(true)
+    setProgress({ done: 0, total: files.length })
     try {
-      const url = await generateUploadUrl({ token })
-      const res = await fetch(url, {
-        method: "POST",
-        headers: file.type ? { "Content-Type": file.type } : undefined,
-        body: file,
-      })
-      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
-      const { storageId } = (await res.json()) as { storageId: string }
-      await addDoc({
-        token,
-        storageId: storageId as Id<"_storage">,
-        title: title.trim(),
-        contentType: file.type || undefined,
-        fileName: file.name,
-        size: file.size,
-        notes: notes.trim() || undefined,
-      })
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i]
+        const url = await generateUploadUrl({ token })
+        const res = await fetch(url, {
+          method: "POST",
+          headers: f.type ? { "Content-Type": f.type } : undefined,
+          body: f,
+        })
+        if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+        const { storageId } = (await res.json()) as { storageId: string }
+        const itemTitle =
+          files.length === 1
+            ? title.trim()
+            : f.name.replace(/\.[^.]+$/, "") || f.name
+        const itemNotes =
+          files.length === 1 ? notes.trim() || undefined : undefined
+        await addDoc({
+          token,
+          storageId: storageId as Id<"_storage">,
+          title: itemTitle,
+          contentType: f.type || undefined,
+          fileName: f.name,
+          size: f.size,
+          notes: itemNotes,
+          ...(folderId ? { folderId } : {}),
+        })
+        setProgress({ done: i + 1, total: files.length })
+      }
       onUploaded()
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
     } finally {
       setUploading(false)
+      setProgress(null)
     }
   }
 
@@ -471,8 +648,8 @@ function UploadModal({
           onDrop={(e) => {
             e.preventDefault()
             setDragging(false)
-            const f = e.dataTransfer.files?.[0]
-            if (f) pickFile(f)
+            const fs = Array.from(e.dataTransfer.files ?? [])
+            if (fs.length > 0) pickFiles(fs)
           }}
           className={[
             "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition",
@@ -482,53 +659,67 @@ function UploadModal({
           ].join(" ")}
         >
           <CloudArrowUp size={24} weight="light" className="text-fg-subtle" />
-          {file ? (
+          {singleFile ? (
             <>
               <div className="text-sm font-semibold text-brown">
-                {file.name}
+                {singleFile.name}
               </div>
               <div className="text-xs text-fg-muted tabular-nums">
-                {formatBytes(file.size)}
+                {formatBytes(singleFile.size)}
               </div>
               <div className="mt-1 text-xs text-fg-subtle">
                 Click to choose a different file
               </div>
             </>
+          ) : files.length > 1 ? (
+            <>
+              <div className="text-sm font-semibold text-brown">
+                {files.length} files selected
+              </div>
+              <div className="mt-1 text-xs text-fg-subtle">
+                Click to choose different files
+              </div>
+            </>
           ) : (
             <>
               <div className="text-sm font-semibold text-brown">
-                Drop file here or click to browse
+                Drop files here or click to browse
               </div>
               <div className="text-xs text-fg-muted">Any file type</div>
             </>
           )}
           <input
             type="file"
-            onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+            multiple
+            onChange={(e) => pickFiles(Array.from(e.target.files ?? []))}
             className="hidden"
           />
         </label>
 
-        <Field label="Title">
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            className={inputCls}
-          />
-        </Field>
+        {files.length <= 1 && (
+          <>
+            <Field label="Title">
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className={inputCls}
+              />
+            </Field>
 
-        <Field label="Notes">
-          <textarea
-            placeholder="Optional"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className={`${inputCls} resize-none`}
-          />
-        </Field>
+            <Field label="Notes">
+              <textarea
+                placeholder="Optional"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className={`${inputCls} resize-none`}
+              />
+            </Field>
+          </>
+        )}
 
         <ErrorMsg>{err}</ErrorMsg>
 
@@ -538,11 +729,19 @@ function UploadModal({
           </button>
           <button
             type="submit"
-            disabled={!file || !title.trim() || uploading}
+            disabled={
+              files.length === 0 ||
+              (files.length === 1 && !title.trim()) ||
+              uploading
+            }
             className={btnPrimary}
           >
             <UploadSimple size={16} weight="bold" />
-            {uploading ? "Uploading…" : "Upload"}
+            {uploading
+              ? progress
+                ? `Uploading ${Math.min(progress.done + 1, progress.total)} of ${progress.total}…`
+                : "Uploading…"
+              : "Upload"}
           </button>
         </footer>
       </form>

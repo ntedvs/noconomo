@@ -57,21 +57,27 @@ export function UploadModal({
   const { token } = useAuth()
   const generateUploadUrl = useMutation(api.images.generateUploadUrl)
   const addImage = useMutation(api.images.add)
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [title, setTitle] = useState("")
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState<{
+    done: number
+    total: number
+  } | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
+  const singleFile = files.length === 1 ? files[0] : null
+
   useEffect(() => {
-    if (!file) {
+    if (!singleFile) {
       setPreviewUrl(null)
       return
     }
-    const url = URL.createObjectURL(file)
+    const url = URL.createObjectURL(singleFile)
     setPreviewUrl(url)
     return () => URL.revokeObjectURL(url)
-  }, [file])
+  }, [singleFile])
 
   const uploadBlob = async (blob: Blob, contentType: string) => {
     const url = await generateUploadUrl({ token })
@@ -87,38 +93,46 @@ export function UploadModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) return
+    if (files.length === 0) return
     setErr(null)
     setUploading(true)
+    setProgress({ done: 0, total: files.length })
     try {
-      const isVid = file.type.startsWith("video/")
-      let posterStorageId: Id<"_storage"> | undefined
-      if (isVid) {
-        try {
-          const poster = await generateVideoPoster(file)
-          posterStorageId = await uploadBlob(poster, "image/jpeg")
-        } catch (e) {
-          console.warn("Poster generation failed", e)
+      const useTitle =
+        files.length === 1 ? title.trim() || undefined : undefined
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i]
+        const isVid = f.type.startsWith("video/")
+        let posterStorageId: Id<"_storage"> | undefined
+        if (isVid) {
+          try {
+            const poster = await generateVideoPoster(f)
+            posterStorageId = await uploadBlob(poster, "image/jpeg")
+          } catch (e) {
+            console.warn("Poster generation failed", e)
+          }
         }
+        const storageId = await uploadBlob(f, f.type)
+        await addImage({
+          token,
+          storageId,
+          title: useTitle,
+          contentType: f.type || undefined,
+          posterStorageId,
+          ...(folderId ? { folderId } : {}),
+        })
+        setProgress({ done: i + 1, total: files.length })
       }
-      const storageId = await uploadBlob(file, file.type)
-      await addImage({
-        token,
-        storageId,
-        title: title.trim() || undefined,
-        contentType: file.type || undefined,
-        posterStorageId,
-        ...(folderId ? { folderId } : {}),
-      })
       onUploaded()
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
     } finally {
       setUploading(false)
+      setProgress(null)
     }
   }
 
-  const isVid = file?.type.startsWith("video/") ?? false
+  const isVid = singleFile?.type.startsWith("video/") ?? false
 
   return (
     <Modal title="Upload" onClose={onClose}>
@@ -127,23 +141,34 @@ export function UploadModal({
           <label
             className={[
               "relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-paper/60 px-4 py-10 text-center transition",
-              file
+              files.length > 0
                 ? "border-border-strong"
                 : "border-border-strong hover:border-sage hover:bg-sage-soft",
             ].join(" ")}
           >
-            {previewUrl && !isVid ? (
+            {singleFile && previewUrl && !isVid ? (
               <img
                 src={previewUrl}
                 alt=""
                 className="max-h-40 rounded-md object-contain"
               />
-            ) : previewUrl && isVid ? (
+            ) : singleFile && previewUrl && isVid ? (
               <video
                 src={previewUrl}
                 muted
                 className="max-h-40 rounded-md object-contain"
               />
+            ) : files.length > 1 ? (
+              <>
+                <CloudArrowUp
+                  size={28}
+                  weight="light"
+                  className="text-fg-subtle"
+                />
+                <span className="text-sm text-fg-muted">
+                  {files.length} files selected
+                </span>
+              </>
             ) : (
               <>
                 <CloudArrowUp
@@ -152,37 +177,40 @@ export function UploadModal({
                   className="text-fg-subtle"
                 />
                 <span className="text-sm text-fg-muted">
-                  Choose a photo or video
+                  Choose photos or videos
                 </span>
                 <span className="text-xs text-fg-subtle">
                   JPG · PNG · MP4 · MOV
                 </span>
               </>
             )}
-            {file && (
+            {singleFile && (
               <span className="truncate text-xs text-fg-muted">
-                {file.name}
+                {singleFile.name}
               </span>
             )}
             <input
               type="file"
               accept="image/*,video/*"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              multiple
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
               required
               className="absolute inset-0 cursor-pointer opacity-0"
             />
           </label>
         </Field>
 
-        <Field label="Title (optional)">
-          <input
-            type="text"
-            placeholder="A name for this photo"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={inputCls}
-          />
-        </Field>
+        {files.length <= 1 && (
+          <Field label="Title (optional)">
+            <input
+              type="text"
+              placeholder="A name for this photo"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+        )}
 
         <ErrorMsg>{err}</ErrorMsg>
 
@@ -192,11 +220,15 @@ export function UploadModal({
           </button>
           <button
             type="submit"
-            disabled={!file || uploading}
+            disabled={files.length === 0 || uploading}
             className={btnPrimary}
           >
             <UploadSimple size={16} />
-            {uploading ? "Uploading…" : "Upload"}
+            {uploading
+              ? progress
+                ? `Uploading ${Math.min(progress.done + 1, progress.total)} of ${progress.total}…`
+                : "Uploading…"
+              : "Upload"}
           </button>
         </footer>
       </form>

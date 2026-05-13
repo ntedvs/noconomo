@@ -36,7 +36,7 @@ export default function Gallery() {
   const folderId = params.folderId as Id<"folders"> | undefined
 
   const items = useQuery(api.images.list, { token })
-  const folders = useQuery(api.folders.list, { token })
+  const folders = useQuery(api.folders.list, { token, kind: "gallery" })
   const removeImage = useMutation(api.images.remove)
 
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -181,6 +181,7 @@ export default function Gallery() {
       {newFolderOpen && (
         <NewFolderModal
           parentFolderId={folderId}
+          kind="gallery"
           onClose={() => setNewFolderOpen(false)}
         />
       )}

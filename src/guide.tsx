@@ -47,18 +47,6 @@ export default function Guide() {
           </p>
         </section>
 
-        <section>
-          <h2 className="font-display text-xl text-brown">Officers</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-6">
-            {c.officers.map((o, i) => (
-              <li key={i}>
-                <span className="font-semibold text-brown">{o.role}:</span>{" "}
-                {o.name}
-              </li>
-            ))}
-          </ul>
-        </section>
-
         {(c.faqs ?? []).length > 0 && (
           <section>
             <h2 className="font-display text-xl text-brown">FAQ</h2>
@@ -158,6 +146,18 @@ export default function Guide() {
                     </div>
                   )}
                 </dl>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl text-brown">Officers</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-6">
+            {c.officers.map((o, i) => (
+              <li key={i}>
+                <span className="font-semibold text-brown">{o.role}:</span>{" "}
+                {o.name}
               </li>
             ))}
           </ul>

@@ -19,11 +19,18 @@ export const add = mutation({
     fileName: v.optional(v.string()),
     size: v.optional(v.number()),
     notes: v.optional(v.string()),
+    folderId: v.optional(v.id("folders")),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
+    if (args.folderId) {
+      const folder = await ctx.db.get(args.folderId)
+      if (!folder) throw new Error("Folder not found")
+      if ((folder.kind ?? "gallery") !== "documents")
+        throw new Error("Folder kind mismatch")
+    }
     const notes = args.notes?.trim()
     await ctx.db.insert("documents", {
       storageId: args.storageId,
@@ -33,6 +40,7 @@ export const add = mutation({
       ...(args.fileName ? { fileName: args.fileName } : {}),
       ...(args.size !== undefined ? { size: args.size } : {}),
       ...(notes ? { notes } : {}),
+      ...(args.folderId ? { folderId: args.folderId } : {}),
     })
     return null
   },
@@ -56,6 +64,7 @@ export const list = query({
           notes: r.notes,
           uploadedBy: r.uploadedBy,
           uploaderName: uploader?.name ?? "Unknown",
+          folderId: r.folderId,
           _creationTime: r._creationTime,
         }
       }),
@@ -74,7 +83,8 @@ export const update = mutation({
     const user = await requireUser(ctx, args.token)
     const doc = await ctx.db.get(args.documentId)
     if (!doc) throw new Error("Not found")
-    if (doc.uploadedBy !== user._id) throw new Error("Not allowed")
+    if (doc.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
     const notes = args.notes?.trim()
@@ -95,7 +105,8 @@ export const remove = mutation({
     const user = await requireUser(ctx, args.token)
     const doc = await ctx.db.get(args.documentId)
     if (!doc) return null
-    if (doc.uploadedBy !== user._id) throw new Error("Not allowed")
+    if (doc.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     await ctx.storage.delete(doc.storageId)
     await ctx.db.delete(doc._id)
     return null

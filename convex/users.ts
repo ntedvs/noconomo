@@ -3,11 +3,28 @@ import { internalQuery, mutation, query } from "./_generated/server"
 import { requireAdmin, requireUser } from "./auth"
 
 export const adminMemberEmails = internalQuery({
-  args: { token: v.union(v.string(), v.null()) },
+  args: {
+    token: v.union(v.string(), v.null()),
+    audience: v.optional(
+      v.union(
+        v.literal("all"),
+        v.literal("shareholders"),
+        v.literal("directors"),
+        v.literal("boardMembers"),
+      ),
+    ),
+  },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.token)
     const users = await ctx.db.query("users").take(1000)
-    return users.map((u) => u.email).filter((e): e is string => !!e)
+    const audience = args.audience ?? "all"
+    const filtered = users.filter((u) => {
+      if (audience === "shareholders") return (u.shares ?? 0) > 0
+      if (audience === "directors") return u.director === true
+      if (audience === "boardMembers") return u.boardMember === true
+      return true
+    })
+    return filtered.map((u) => u.email).filter((e): e is string => !!e)
   },
 })
 
