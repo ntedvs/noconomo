@@ -52,6 +52,12 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_email", ["email"]),
 
+  rateLimits: defineTable({
+    key: v.string(),
+    count: v.number(),
+    windowStart: v.number(),
+  }).index("by_key", ["key"]),
+
   images: defineTable({
     storageId: v.id("_storage"),
     uploadedBy: v.id("users"),

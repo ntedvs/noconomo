@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
+import { assertStorageUnreferenced } from "./storageOwnership"
 
 const attachmentValidator = v.object({
   storageId: v.id("_storage"),
@@ -64,6 +65,9 @@ export const create = mutation({
     if (!item) throw new Error("Item required")
     if (!Number.isFinite(args.cost)) throw new Error("Invalid cost")
     const notes = args.notes?.trim()
+    for (const a of args.attachments ?? []) {
+      await assertStorageUnreferenced(ctx, a.storageId)
+    }
     return await ctx.db.insert("expenses", {
       item,
       cost: args.cost,
@@ -86,13 +90,24 @@ export const update = mutation({
     attachments: v.array(attachmentValidator),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
     const existing = await ctx.db.get(args.id)
     if (!existing) throw new Error("Not found")
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     const item = args.item.trim()
     if (!item) throw new Error("Item required")
     if (!Number.isFinite(args.cost)) throw new Error("Invalid cost")
     const notes = args.notes?.trim()
+
+    const existingIds = new Set(
+      (existing.attachments ?? []).map((a) => a.storageId),
+    )
+    for (const a of args.attachments) {
+      if (!existingIds.has(a.storageId)) {
+        await assertStorageUnreferenced(ctx, a.storageId)
+      }
+    }
 
     const keptIds = new Set(args.attachments.map((a) => a.storageId))
     for (const a of existing.attachments ?? []) {
@@ -117,9 +132,11 @@ export const remove = mutation({
     id: v.id("expenses"),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
     const existing = await ctx.db.get(args.id)
     if (!existing) return null
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     for (const a of existing.attachments ?? []) {
       await ctx.storage.delete(a.storageId)
     }

@@ -63,7 +63,11 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
+    const existing = await ctx.db.get(args.id)
+    if (!existing) throw new Error("Not found")
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     if (!DATE_RE.test(args.startDate) || !DATE_RE.test(args.endDate)) {
       throw new Error("Invalid date format")
     }
@@ -87,7 +91,11 @@ export const remove = mutation({
     id: v.id("reservations"),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
+    const existing = await ctx.db.get(args.id)
+    if (!existing) return null
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     await ctx.db.delete(args.id)
     return null
   },

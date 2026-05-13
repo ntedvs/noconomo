@@ -36,6 +36,11 @@ export const save = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.token)
+    for (const p of args.serviceProviders) {
+      if (p.website && !/^https?:\/\//i.test(p.website)) {
+        throw new Error("Website must start with http:// or https://")
+      }
+    }
     const { token: _token, ...data } = args
     const existing = await ctx.db.query("guide").take(1)
     if (existing[0]) {

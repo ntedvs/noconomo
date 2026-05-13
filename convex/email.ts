@@ -88,6 +88,15 @@ export const broadcast = action({
     }[] = []
     let totalBytes = 0
     for (const spec of attachmentSpecs) {
+      const referenced: boolean = await ctx.runQuery(
+        internal.storageOwnership.isStorageReferenced,
+        { storageId: spec.storageId },
+      )
+      if (referenced) {
+        throw new Error(
+          `Attachment ${spec.filename} is referenced by another resource`,
+        )
+      }
       const blob = await ctx.storage.get(spec.storageId)
       if (!blob) throw new Error(`Attachment missing: ${spec.filename}`)
       const buffer = Buffer.from(await blob.arrayBuffer())
@@ -106,21 +115,18 @@ export const broadcast = action({
     const html = `<div style="white-space:pre-wrap;font-family:sans-serif">${escapeHtml(
       body,
     )}</div>`
-    try {
-      await transport.sendMail({
-        from,
-        to: from,
-        cc: ccs,
-        subject,
-        text: body,
-        html,
-        ...(attachments.length > 0 ? { attachments } : {}),
-      })
-    } finally {
-      await Promise.allSettled(
-        attachmentSpecs.map((s) => ctx.storage.delete(s.storageId)),
-      )
-    }
+    await transport.sendMail({
+      from,
+      to: from,
+      cc: ccs,
+      subject,
+      text: body,
+      html,
+      ...(attachments.length > 0 ? { attachments } : {}),
+    })
+    await Promise.allSettled(
+      attachmentSpecs.map((s) => ctx.storage.delete(s.storageId)),
+    )
     return { recipients: ccs.length }
   },
 })

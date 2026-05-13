@@ -112,7 +112,7 @@ export default function Guide() {
                       <dd className="inline">{s.email}</dd>
                     </div>
                   )}
-                  {s.website && (
+                  {s.website && /^https?:\/\//i.test(s.website) && (
                     <div>
                       <dt className="inline font-semibold text-brown">
                         Website:

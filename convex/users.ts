@@ -88,6 +88,7 @@ export const update = mutation({
       patch.generation = args.generation.trim() || undefined
     }
     if (args.shares !== undefined) {
+      if (!isAdmin) throw new Error("Only admins can change shares")
       patch.shares = args.shares
     }
     if (args.phoneNumber !== undefined) {

@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
-import { requireUser } from "./auth"
+import { requireAdmin, requireUser } from "./auth"
 
 export const list = query({
   args: { token: v.union(v.string(), v.null()) },
@@ -37,8 +37,17 @@ export const update = mutation({
     color: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
-    await ctx.db.patch(args.id, { name: args.name.trim(), color: args.color })
+    await requireAdmin(ctx, args.token)
+    const name = args.name.trim()
+    if (!name) throw new Error("Name required")
+    const existing = await ctx.db
+      .query("families")
+      .withIndex("by_name", (q) => q.eq("name", name))
+      .unique()
+    if (existing && existing._id !== args.id) {
+      throw new Error("Family already exists")
+    }
+    await ctx.db.patch(args.id, { name, color: args.color })
     return null
   },
 })

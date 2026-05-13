@@ -1,10 +1,44 @@
 import { v } from "convex/values"
 import { internal } from "./_generated/api"
 import type { Doc } from "./_generated/dataModel"
-import { mutation, query, type QueryCtx } from "./_generated/server"
+import {
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server"
 
 const CODE_TTL_MS = 10 * 60 * 1000
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const REQUEST_CODE_WINDOW_MS = 60 * 60 * 1000
+const REQUEST_CODE_LIMIT = 5
+const VERIFY_CODE_WINDOW_MS = CODE_TTL_MS
+const VERIFY_CODE_LIMIT = 5
+
+async function consumeRateLimit(
+  ctx: MutationCtx,
+  key: string,
+  limit: number,
+  windowMs: number,
+): Promise<void> {
+  const existing = await ctx.db
+    .query("rateLimits")
+    .withIndex("by_key", (q) => q.eq("key", key))
+    .unique()
+  const now = Date.now()
+  if (!existing) {
+    await ctx.db.insert("rateLimits", { key, count: 1, windowStart: now })
+    return
+  }
+  if (now - existing.windowStart > windowMs) {
+    await ctx.db.patch(existing._id, { count: 1, windowStart: now })
+    return
+  }
+  if (existing.count >= limit) {
+    throw new Error("Too many attempts. Please try again later.")
+  }
+  await ctx.db.patch(existing._id, { count: existing.count + 1 })
+}
 
 async function sha256(input: string): Promise<string> {
   const buf = await crypto.subtle.digest(
@@ -39,11 +73,24 @@ export const requestCode = mutation({
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new Error("Invalid email")
     }
+    await consumeRateLimit(
+      ctx,
+      `requestCode:${email}`,
+      REQUEST_CODE_LIMIT,
+      REQUEST_CODE_WINDOW_MS,
+    )
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .unique()
     if (!user) return null
+    const priorCodes = await ctx.db
+      .query("authCodes")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect()
+    for (const prior of priorCodes) {
+      await ctx.db.delete(prior._id)
+    }
     const code = generateCode()
     const codeHash = await sha256(code)
     await ctx.db.insert("authCodes", {
@@ -63,6 +110,12 @@ export const verifyCode = mutation({
   args: { email: v.string(), code: v.string() },
   handler: async (ctx, args) => {
     const email = normalizeEmail(args.email)
+    await consumeRateLimit(
+      ctx,
+      `verifyCode:${email}`,
+      VERIFY_CODE_LIMIT,
+      VERIFY_CODE_WINDOW_MS,
+    )
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))

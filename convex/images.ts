@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
+import { assertStorageUnreferenced } from "./storageOwnership"
 
 export const generateUploadUrl = mutation({
   args: { token: v.union(v.string(), v.null()) },
@@ -22,9 +23,15 @@ export const add = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
     const title = args.title?.trim()
+    await assertStorageUnreferenced(ctx, args.storageId)
+    if (args.posterStorageId) {
+      await assertStorageUnreferenced(ctx, args.posterStorageId)
+    }
     if (args.folderId) {
       const folder = await ctx.db.get(args.folderId)
       if (!folder) throw new Error("Folder not found")
+      if ((folder.kind ?? "gallery") !== "gallery")
+        throw new Error("Folder kind mismatch")
     }
     await ctx.db.insert("images", {
       storageId: args.storageId,

@@ -47,6 +47,8 @@ export const create = mutation({
       createdBy: user._id,
     })
     if (args.notify) {
+      if (!user.admin)
+        throw new Error("Only admins can send event notifications")
       const users = await ctx.db.query("users").take(1000)
       const recipients = users
         .map((u) => u.email)
@@ -72,7 +74,11 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
+    const existing = await ctx.db.get(args.id)
+    if (!existing) throw new Error("Not found")
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     if (!DATE_RE.test(args.date)) throw new Error("Invalid date format")
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
@@ -88,7 +94,11 @@ export const remove = mutation({
     id: v.id("events"),
   },
   handler: async (ctx, args) => {
-    await requireUser(ctx, args.token)
+    const user = await requireUser(ctx, args.token)
+    const existing = await ctx.db.get(args.id)
+    if (!existing) return null
+    if (existing.createdBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
     await ctx.db.delete(args.id)
     return null
   },

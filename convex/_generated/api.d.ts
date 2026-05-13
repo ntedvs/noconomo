@@ -20,6 +20,7 @@ import type * as folders from "../folders.js";
 import type * as guide from "../guide.js";
 import type * as images from "../images.js";
 import type * as reservations from "../reservations.js";
+import type * as storageOwnership from "../storageOwnership.js";
 import type * as users from "../users.js";
 
 import type {
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   guide: typeof guide;
   images: typeof images;
   reservations: typeof reservations;
+  storageOwnership: typeof storageOwnership;
   users: typeof users;
 }>;
 

@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
+import { assertStorageUnreferenced } from "./storageOwnership"
 
 export const generateUploadUrl = mutation({
   args: { token: v.union(v.string(), v.null()) },
@@ -25,6 +26,7 @@ export const add = mutation({
     const user = await requireUser(ctx, args.token)
     const title = args.title.trim()
     if (!title) throw new Error("Title required")
+    await assertStorageUnreferenced(ctx, args.storageId)
     if (args.folderId) {
       const folder = await ctx.db.get(args.folderId)
       if (!folder) throw new Error("Folder not found")
