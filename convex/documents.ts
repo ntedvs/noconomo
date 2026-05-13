@@ -98,6 +98,31 @@ export const update = mutation({
   },
 })
 
+export const moveToFolder = mutation({
+  args: {
+    token: v.union(v.string(), v.null()),
+    documentId: v.id("documents"),
+    folderId: v.union(v.id("folders"), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx, args.token)
+    const doc = await ctx.db.get(args.documentId)
+    if (!doc) throw new Error("Not found")
+    if (doc.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
+    if (args.folderId) {
+      const folder = await ctx.db.get(args.folderId)
+      if (!folder) throw new Error("Folder not found")
+      if ((folder.kind ?? "gallery") !== "documents")
+        throw new Error("Folder kind mismatch")
+    }
+    await ctx.db.patch(doc._id, {
+      folderId: args.folderId ?? undefined,
+    })
+    return null
+  },
+})
+
 export const remove = mutation({
   args: {
     token: v.union(v.string(), v.null()),

@@ -90,6 +90,11 @@ export default function Documents() {
   const items = useQuery(api.documents.list, { token })
   const folders = useQuery(api.folders.list, { token, kind: "documents" })
   const removeDoc = useMutation(api.documents.remove)
+  const moveDoc = useMutation(api.documents.moveToFolder)
+  const [dropTarget, setDropTarget] = useState<Id<"folders"> | "root" | null>(
+    null,
+  )
+  const [draggingId, setDraggingId] = useState<Id<"documents"> | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<DocItem | null>(null)
@@ -136,6 +141,26 @@ export default function Documents() {
     return chain
   }, [allFolders, folderId])
 
+  const handleDropOnFolder = async (
+    e: React.DragEvent,
+    targetFolderId: Id<"folders"> | null,
+  ) => {
+    e.preventDefault()
+    setDropTarget(null)
+    const docId = e.dataTransfer.getData("application/x-doc-id") as
+      | Id<"documents">
+      | ""
+    if (!docId) return
+    const doc = allItems.find((d) => d._id === docId)
+    if (!doc) return
+    if ((doc.folderId ?? null) === targetFolderId) return
+    try {
+      await moveDoc({ token, documentId: docId, folderId: targetFolderId })
+    } catch {
+      // surface via existing error UX would be nice; silent for now
+    }
+  }
+
   const loading = items === undefined || folders === undefined
   const empty = !loading && childFolders.length === 0 && childItems.length === 0
 
@@ -158,21 +183,58 @@ export default function Documents() {
 
       {(breadcrumbs.length > 0 || folderId) && (
         <nav className="mt-8 flex flex-wrap items-center gap-1.5 text-sm text-fg-muted">
-          <Link to="/documents" className="hover:text-brown">
+          <Link
+            to="/documents"
+            onDragOver={(e) => {
+              if (!e.dataTransfer.types.includes("application/x-doc-id"))
+                return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = "move"
+              if (dropTarget !== "root") setDropTarget("root")
+            }}
+            onDragLeave={() => {
+              if (dropTarget === "root") setDropTarget(null)
+            }}
+            onDrop={(e) => handleDropOnFolder(e, null)}
+            className={`rounded px-1 hover:text-brown ${
+              dropTarget === "root" ? "bg-sage-soft text-brown" : ""
+            }`}
+          >
             Documents
           </Link>
-          {breadcrumbs.map((f, i) => (
-            <span key={f._id} className="flex items-center gap-1.5">
-              <CaretRight size={12} className="text-border-strong" />
-              {i === breadcrumbs.length - 1 ? (
-                <span className="font-semibold text-brown">{f.name}</span>
-              ) : (
-                <Link to={`/documents/${f._id}`} className="hover:text-brown">
-                  {f.name}
-                </Link>
-              )}
-            </span>
-          ))}
+          {breadcrumbs.map((f, i) => {
+            const isLast = i === breadcrumbs.length - 1
+            return (
+              <span key={f._id} className="flex items-center gap-1.5">
+                <CaretRight size={12} className="text-border-strong" />
+                {isLast ? (
+                  <span className="font-semibold text-brown">{f.name}</span>
+                ) : (
+                  <Link
+                    to={`/documents/${f._id}`}
+                    onDragOver={(e) => {
+                      if (
+                        !e.dataTransfer.types.includes("application/x-doc-id")
+                      )
+                        return
+                      e.preventDefault()
+                      e.dataTransfer.dropEffect = "move"
+                      if (dropTarget !== f._id) setDropTarget(f._id)
+                    }}
+                    onDragLeave={() => {
+                      if (dropTarget === f._id) setDropTarget(null)
+                    }}
+                    onDrop={(e) => handleDropOnFolder(e, f._id)}
+                    className={`rounded px-1 hover:text-brown ${
+                      dropTarget === f._id ? "bg-sage-soft text-brown" : ""
+                    }`}
+                  >
+                    {f.name}
+                  </Link>
+                )}
+              </span>
+            )
+          })}
         </nav>
       )}
 
@@ -202,7 +264,24 @@ export default function Documents() {
               return (
                 <li
                   key={f._id}
-                  className="group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+                  onDragOver={(e) => {
+                    if (
+                      !e.dataTransfer.types.includes("application/x-doc-id")
+                    )
+                      return
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = "move"
+                    if (dropTarget !== f._id) setDropTarget(f._id)
+                  }}
+                  onDragLeave={() => {
+                    if (dropTarget === f._id) setDropTarget(null)
+                  }}
+                  onDrop={(e) => handleDropOnFolder(e, f._id)}
+                  className={`group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] ${
+                    dropTarget === f._id
+                      ? "border-sage ring-2 ring-sage/40"
+                      : "border-border"
+                  }`}
                 >
                   <Link
                     to={`/documents/${f._id}`}
@@ -246,13 +325,27 @@ export default function Documents() {
               return (
                 <li
                   key={d._id}
-                  className="group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
+                  draggable={canEdit}
+                  onDragStart={(e) => {
+                    if (!canEdit) {
+                      e.preventDefault()
+                      return
+                    }
+                    e.dataTransfer.effectAllowed = "move"
+                    e.dataTransfer.setData("application/x-doc-id", d._id)
+                    setDraggingId(d._id)
+                  }}
+                  onDragEnd={() => setDraggingId(null)}
+                  className={`group relative grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] ${
+                    canEdit ? "cursor-grab active:cursor-grabbing" : ""
+                  } ${draggingId === d._id ? "opacity-50" : ""}`}
                 >
                   {d.url && (
                     <a
                       href={d.url}
                       download={d.fileName ?? d.title}
                       aria-label={`Download ${d.title}`}
+                      draggable={false}
                       className="absolute inset-0 z-0"
                     />
                   )}

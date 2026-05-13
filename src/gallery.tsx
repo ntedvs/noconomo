@@ -38,6 +38,11 @@ export default function Gallery() {
   const items = useQuery(api.images.list, { token })
   const folders = useQuery(api.folders.list, { token, kind: "gallery" })
   const removeImage = useMutation(api.images.remove)
+  const moveImage = useMutation(api.images.moveToFolder)
+  const [dropTarget, setDropTarget] = useState<Id<"folders"> | "root" | null>(
+    null,
+  )
+  const [draggingId, setDraggingId] = useState<Id<"images"> | null>(null)
 
   const [uploadOpen, setUploadOpen] = useState(false)
   const [newFolderOpen, setNewFolderOpen] = useState(false)
@@ -87,6 +92,38 @@ export default function Gallery() {
     return chain
   }, [allFolders, folderId])
 
+  const handleDropOnFolder = async (
+    e: React.DragEvent,
+    targetFolderId: Id<"folders"> | null,
+  ) => {
+    e.preventDefault()
+    setDropTarget(null)
+    const imgId = e.dataTransfer.getData("application/x-image-id") as
+      | Id<"images">
+      | ""
+    if (!imgId) return
+    const img = allImages.find((m) => m._id === imgId)
+    if (!img) return
+    if ((img.folderId ?? null) === targetFolderId) return
+    try {
+      await moveImage({ token, imageId: imgId, folderId: targetFolderId })
+    } catch {
+      // ignore
+    }
+  }
+
+  const dragOverFolder =
+    (id: Id<"folders"> | "root") => (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes("application/x-image-id")) return
+      e.preventDefault()
+      e.dataTransfer.dropEffect = "move"
+      if (dropTarget !== id) setDropTarget(id)
+    }
+
+  const dragLeaveFolder = (id: Id<"folders"> | "root") => () => {
+    if (dropTarget === id) setDropTarget(null)
+  }
+
   const loading = items === undefined || folders === undefined
   const empty =
     !loading && childFolders.length === 0 && childImages.length === 0
@@ -110,21 +147,40 @@ export default function Gallery() {
 
       {(breadcrumbs.length > 0 || folderId) && (
         <nav className="mt-8 flex flex-wrap items-center gap-1.5 text-sm text-fg-muted">
-          <Link to="/gallery" className="hover:text-brown">
+          <Link
+            to="/gallery"
+            onDragOver={dragOverFolder("root")}
+            onDragLeave={dragLeaveFolder("root")}
+            onDrop={(e) => handleDropOnFolder(e, null)}
+            className={`rounded px-1 hover:text-brown ${
+              dropTarget === "root" ? "bg-sage-soft text-brown" : ""
+            }`}
+          >
             Gallery
           </Link>
-          {breadcrumbs.map((f, i) => (
-            <span key={f._id} className="flex items-center gap-1.5">
-              <CaretRight size={12} className="text-border-strong" />
-              {i === breadcrumbs.length - 1 ? (
-                <span className="font-semibold text-brown">{f.name}</span>
-              ) : (
-                <Link to={`/gallery/${f._id}`} className="hover:text-brown">
-                  {f.name}
-                </Link>
-              )}
-            </span>
-          ))}
+          {breadcrumbs.map((f, i) => {
+            const isLast = i === breadcrumbs.length - 1
+            return (
+              <span key={f._id} className="flex items-center gap-1.5">
+                <CaretRight size={12} className="text-border-strong" />
+                {isLast ? (
+                  <span className="font-semibold text-brown">{f.name}</span>
+                ) : (
+                  <Link
+                    to={`/gallery/${f._id}`}
+                    onDragOver={dragOverFolder(f._id)}
+                    onDragLeave={dragLeaveFolder(f._id)}
+                    onDrop={(e) => handleDropOnFolder(e, f._id)}
+                    className={`rounded px-1 hover:text-brown ${
+                      dropTarget === f._id ? "bg-sage-soft text-brown" : ""
+                    }`}
+                  >
+                    {f.name}
+                  </Link>
+                )}
+              </span>
+            )
+          })}
         </nav>
       )}
 
@@ -155,18 +211,38 @@ export default function Gallery() {
                 canEdit={user?._id === f.createdBy || user?.admin === true}
                 onRename={() => setRenamingFolder(f)}
                 onDelete={() => setDeletingFolder(f)}
+                isDropTarget={dropTarget === f._id}
+                onDragOver={dragOverFolder(f._id)}
+                onDragLeave={dragLeaveFolder(f._id)}
+                onDrop={(e) => handleDropOnFolder(e, f._id)}
               />
             ))}
-            {childImages.map((m, i) => (
-              <Tile
-                key={m._id}
-                media={m}
-                canEdit={user?._id === m.uploadedBy || user?.admin === true}
-                onOpen={() => setViewer({ index: i })}
-                onRename={() => setRenaming(m)}
-                onDelete={() => setConfirmDelete(m)}
-              />
-            ))}
+            {childImages.map((m, i) => {
+              const canEditMedia =
+                user?._id === m.uploadedBy || user?.admin === true
+              return (
+                <Tile
+                  key={m._id}
+                  media={m}
+                  canEdit={canEditMedia}
+                  onOpen={() => setViewer({ index: i })}
+                  onRename={() => setRenaming(m)}
+                  onDelete={() => setConfirmDelete(m)}
+                  draggable={canEditMedia}
+                  isDragging={draggingId === m._id}
+                  onDragStart={(e) => {
+                    if (!canEditMedia) {
+                      e.preventDefault()
+                      return
+                    }
+                    e.dataTransfer.effectAllowed = "move"
+                    e.dataTransfer.setData("application/x-image-id", m._id)
+                    setDraggingId(m._id)
+                  }}
+                  onDragEnd={() => setDraggingId(null)}
+                />
+              )
+            })}
           </div>
         )}
       </section>

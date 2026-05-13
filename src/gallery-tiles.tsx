@@ -15,18 +15,36 @@ export function FolderTile({
   canEdit,
   onRename,
   onDelete,
+  isDropTarget,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: {
   folder: FolderRow
   canEdit: boolean
   onRename: () => void
   onDelete: () => void
+  isDropTarget?: boolean
+  onDragOver?: (e: React.DragEvent) => void
+  onDragLeave?: (e: React.DragEvent) => void
+  onDrop?: (e: React.DragEvent) => void
 }) {
   return (
     <figure>
-      <div className="group/tile relative">
+      <div
+        className="group/tile relative"
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
         <Link
           to={`/gallery/${folder._id}`}
-          className="relative grid aspect-square w-full place-items-center overflow-hidden rounded-md border border-border bg-sage-soft/60 text-sage shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:bg-sage-soft hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/50"
+          draggable={false}
+          className={`relative grid aspect-square w-full place-items-center overflow-hidden rounded-md border bg-sage-soft/60 text-sage shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:bg-sage-soft hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/50 ${
+            isDropTarget
+              ? "border-sage ring-2 ring-sage/40"
+              : "border-border"
+          }`}
         >
           <Folder size={64} weight="duotone" />
         </Link>
@@ -75,28 +93,44 @@ export function Tile({
   onOpen,
   onRename,
   onDelete,
+  draggable,
+  onDragStart,
+  onDragEnd,
+  isDragging,
 }: {
   media: Media
   canEdit: boolean
   onOpen: () => void
   onRename: () => void
   onDelete: () => void
+  draggable?: boolean
+  onDragStart?: (e: React.DragEvent) => void
+  onDragEnd?: (e: React.DragEvent) => void
+  isDragging?: boolean
 }) {
   const video = isVideo(media)
   const thumb = video ? media.posterUrl : media.url
 
   return (
     <figure>
-      <div className="group/tile relative">
+      <div
+        className={`group/tile relative ${isDragging ? "opacity-50" : ""}`}
+      >
         <button
           onClick={onOpen}
-          className="relative block w-full overflow-hidden rounded-md border border-border bg-bg-muted shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/50"
+          draggable={draggable}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          className={`relative block w-full overflow-hidden rounded-md border border-border bg-bg-muted shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/50 ${
+            draggable ? "cursor-grab active:cursor-grabbing" : ""
+          }`}
         >
           {thumb ? (
             <img
               src={thumb}
               alt={media.title ?? ""}
               loading="lazy"
+              draggable={false}
               className="aspect-square w-full object-cover transition-transform duration-300 ease-out group-hover/tile:scale-[1.025]"
             />
           ) : (

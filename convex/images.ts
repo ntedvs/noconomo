@@ -91,6 +91,31 @@ export const setTitle = mutation({
   },
 })
 
+export const moveToFolder = mutation({
+  args: {
+    token: v.union(v.string(), v.null()),
+    imageId: v.id("images"),
+    folderId: v.union(v.id("folders"), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx, args.token)
+    const img = await ctx.db.get(args.imageId)
+    if (!img) throw new Error("Not found")
+    if (img.uploadedBy !== user._id && !user.admin)
+      throw new Error("Not allowed")
+    if (args.folderId) {
+      const folder = await ctx.db.get(args.folderId)
+      if (!folder) throw new Error("Folder not found")
+      if ((folder.kind ?? "gallery") !== "gallery")
+        throw new Error("Folder kind mismatch")
+    }
+    await ctx.db.patch(img._id, {
+      folderId: args.folderId ?? undefined,
+    })
+    return null
+  },
+})
+
 export const remove = mutation({
   args: {
     token: v.union(v.string(), v.null()),
