@@ -88,13 +88,10 @@ export default function Members() {
         (u.family ?? "").toLowerCase().includes(q)
       )
     })
-    if (!user) return matches
-    return matches.sort((a, b) => {
-      if (a._id === user._id) return -1
-      if (b._id === user._id) return 1
-      return 0
-    })
-  }, [users, query, familyFilter, user])
+    return matches.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    )
+  }, [users, query, familyFilter])
 
   if (users === undefined) {
     return (
