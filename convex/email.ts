@@ -70,6 +70,16 @@ export const broadcast = action({
       ),
     ),
   },
+  returns: v.object({
+    recipients: v.number(),
+    sent: v.number(),
+    failed: v.array(
+      v.object({
+        recipients: v.array(v.string()),
+        error: v.string(),
+      }),
+    ),
+  }),
   handler: async (ctx, args) => {
     const subject = args.subject.trim()
     const body = args.body.trim()
@@ -115,19 +125,44 @@ export const broadcast = action({
     const html = `<div style="white-space:pre-wrap;font-family:sans-serif">${escapeHtml(
       body,
     )}</div>`
-    await transport.sendMail({
-      from,
-      to: from,
-      cc: ccs,
-      subject,
-      text: body,
-      html,
-      ...(attachments.length > 0 ? { attachments } : {}),
-    })
+
+    const BATCH_SIZE = 45
+    const BATCH_GAP_MS = 100
+    const batches: string[][] = []
+    for (let i = 0; i < ccs.length; i += BATCH_SIZE) {
+      batches.push(ccs.slice(i, i + BATCH_SIZE))
+    }
+
+    let sent = 0
+    const failed: { recipients: string[]; error: string }[] = []
+    for (let i = 0; i < batches.length; i++) {
+      const bcc = batches[i]
+      try {
+        await transport.sendMail({
+          from,
+          to: from,
+          bcc,
+          subject,
+          text: body,
+          html,
+          ...(attachments.length > 0 ? { attachments } : {}),
+        })
+        sent += bcc.length
+      } catch (err) {
+        failed.push({
+          recipients: bcc,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+      if (i < batches.length - 1) {
+        await new Promise((r) => setTimeout(r, BATCH_GAP_MS))
+      }
+    }
+
     await Promise.allSettled(
       attachmentSpecs.map((s) => ctx.storage.delete(s.storageId)),
     )
-    return { recipients: ccs.length }
+    return { recipients: ccs.length, sent, failed }
   },
 })
 
@@ -161,16 +196,26 @@ export const sendEventEmail = internalAction({
     const text = await render(element, { plainText: true })
     const subject = `New event: ${args.title} (${args.date})`
 
-    const queue = [...args.recipients]
-    const worker = async () => {
-      while (queue.length > 0) {
-        const to = queue.shift()
-        if (!to) break
-        await transport.sendMail({ from, to, subject, html, text })
+    const BATCH_SIZE = 45
+    const BATCH_GAP_MS = 100
+    const batches: string[][] = []
+    for (let i = 0; i < args.recipients.length; i += BATCH_SIZE) {
+      batches.push(args.recipients.slice(i, i + BATCH_SIZE))
+    }
+    for (let i = 0; i < batches.length; i++) {
+      const bcc = batches[i]
+      try {
+        await transport.sendMail({ from, to: from, bcc, subject, html, text })
+      } catch (err) {
+        console.error(
+          `sendEventEmail batch failed (${bcc.length} recipients):`,
+          err,
+        )
+      }
+      if (i < batches.length - 1) {
+        await new Promise((r) => setTimeout(r, BATCH_GAP_MS))
       }
     }
-    const concurrency = Math.min(5, args.recipients.length)
-    await Promise.all(Array.from({ length: concurrency }, worker))
     return null
   },
 })

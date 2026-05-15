@@ -41,9 +41,7 @@ export function FolderTile({
           to={`/gallery/${folder._id}`}
           draggable={false}
           className={`relative grid aspect-square w-full place-items-center overflow-hidden rounded-md border bg-sage-soft/60 text-sage shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:bg-sage-soft hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/50 ${
-            isDropTarget
-              ? "border-sage ring-2 ring-sage/40"
-              : "border-border"
+            isDropTarget ? "border-sage ring-2 ring-sage/40" : "border-border"
           }`}
         >
           <Folder size={64} weight="duotone" />
@@ -113,9 +111,7 @@ export function Tile({
 
   return (
     <figure>
-      <div
-        className={`group/tile relative ${isDragging ? "opacity-50" : ""}`}
-      >
+      <div className={`group/tile relative ${isDragging ? "opacity-50" : ""}`}>
         <button
           onClick={onOpen}
           draggable={draggable}

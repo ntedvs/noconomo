@@ -186,8 +186,7 @@ export default function Documents() {
           <Link
             to="/documents"
             onDragOver={(e) => {
-              if (!e.dataTransfer.types.includes("application/x-doc-id"))
-                return
+              if (!e.dataTransfer.types.includes("application/x-doc-id")) return
               e.preventDefault()
               e.dataTransfer.dropEffect = "move"
               if (dropTarget !== "root") setDropTarget("root")
@@ -265,9 +264,7 @@ export default function Documents() {
                 <li
                   key={f._id}
                   onDragOver={(e) => {
-                    if (
-                      !e.dataTransfer.types.includes("application/x-doc-id")
-                    )
+                    if (!e.dataTransfer.types.includes("application/x-doc-id"))
                       return
                     e.preventDefault()
                     e.dataTransfer.dropEffect = "move"

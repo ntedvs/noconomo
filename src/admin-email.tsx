@@ -111,10 +111,25 @@ export default function AdminEmail() {
           ...(a.contentType ? { contentType: a.contentType } : {}),
         })),
       })
-      setMsg(`Sent to ${result.recipients} recipient(s).`)
-      setSubject("")
-      setBody("")
-      setAttachments([])
+      const failedCount = result.failed.reduce(
+        (n, b) => n + b.recipients.length,
+        0,
+      )
+      if (failedCount > 0) {
+        const errors = Array.from(
+          new Set(result.failed.map((f) => f.error)),
+        ).join("; ")
+        const truncated =
+          errors.length > 300 ? `${errors.slice(0, 300)}…` : errors
+        setErr(
+          `Sent to ${result.sent} of ${result.recipients}. Failed: ${failedCount}. ${truncated}`,
+        )
+      } else {
+        setMsg(`Sent to ${result.sent} recipient(s).`)
+        setSubject("")
+        setBody("")
+        setAttachments([])
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
     } finally {
@@ -130,7 +145,8 @@ export default function AdminEmail() {
       <header>
         <h1 className="font-display text-4xl sm:text-5xl">Send email</h1>
         <p className="mt-3 text-sm text-fg-muted">
-          Sends to the group address with the selected recipients on CC.
+          Sends to the group address with the selected recipients on BCC, in
+          batches of 45.
         </p>
       </header>
 
