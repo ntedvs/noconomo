@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
+import { fileProxyUrl } from "./fileUrl"
 import { assertStorageUnreferenced } from "./storageOwnership"
 
 const attachmentValidator = v.object({
@@ -43,7 +44,7 @@ export const list = query({
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.size,
-            url: await ctx.storage.getUrl(a.storageId),
+            url: await fileProxyUrl(a.storageId),
           })),
         ),
       })),

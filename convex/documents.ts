@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireUser } from "./auth"
+import { fileProxyUrl } from "./fileUrl"
 import { assertStorageUnreferenced } from "./storageOwnership"
 
 export const generateUploadUrl = mutation({
@@ -58,7 +59,7 @@ export const list = query({
         const uploader = await ctx.db.get(r.uploadedBy)
         return {
           _id: r._id,
-          url: await ctx.storage.getUrl(r.storageId),
+          url: await fileProxyUrl(r.storageId),
           title: r.title,
           fileName: r.fileName,
           contentType: r.contentType,

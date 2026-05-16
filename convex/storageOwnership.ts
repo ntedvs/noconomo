@@ -13,6 +13,14 @@ export const isStorageReferenced = internalQuery({
   },
 })
 
+export const getStorageContentType = internalQuery({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args): Promise<string | null> => {
+    const meta = await ctx.db.system.get(args.storageId)
+    return meta?.contentType ?? null
+  },
+})
+
 async function storageIsReferenced(
   ctx: QueryCtx | MutationCtx,
   storageId: Id<"_storage">,
