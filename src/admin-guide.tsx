@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, TrashIcon } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
 import {
@@ -32,6 +32,10 @@ export default function AdminGuide() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [invalidWebsiteIndex, setInvalidWebsiteIndex] = useState<number | null>(
+    null,
+  )
+  const websiteRefs = useRef<Map<number, HTMLInputElement>>(new Map())
 
   useEffect(() => {
     if (stored === undefined) return
@@ -85,6 +89,24 @@ export default function AdminGuide() {
 
   async function onSave() {
     if (!content) return
+    const badIndex = content.serviceProviders.findIndex(
+      (p) => p.website && !/^https?:\/\/\S+$/i.test(p.website.trim()),
+    )
+    if (badIndex !== -1) {
+      const bad = content.serviceProviders[badIndex]
+      setInvalidWebsiteIndex(badIndex)
+      setErr(
+        `Website for "${bad.provider || bad.service || "a provider"}" must start with http:// or https://`,
+      )
+      setMsg(null)
+      const el = websiteRefs.current.get(badIndex)
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" })
+        el.focus({ preventScroll: true })
+      }
+      return
+    }
+    setInvalidWebsiteIndex(null)
     setBusy(true)
     setMsg(null)
     setErr(null)
@@ -148,30 +170,6 @@ export default function AdminGuide() {
           </div>
         </Section>
 
-        <Section title="Officers">
-          <ListEditor
-            items={content.officers}
-            onChange={(officers) => update({ officers })}
-            newItem={(): Officer => ({ role: "", name: "" })}
-            render={(o, set) => (
-              <div className="flex gap-2">
-                <input
-                  value={o.role}
-                  onChange={(e) => set({ ...o, role: e.target.value })}
-                  placeholder="Role"
-                  className="flex-1 rounded-md border border-border bg-bg px-3 py-2 text-base"
-                />
-                <input
-                  value={o.name}
-                  onChange={(e) => set({ ...o, name: e.target.value })}
-                  placeholder="Name"
-                  className="flex-1 rounded-md border border-border bg-bg px-3 py-2 text-base"
-                />
-              </div>
-            )}
-          />
-        </Section>
-
         <Section title="FAQ">
           <ListEditor
             items={content.faqs}
@@ -202,7 +200,7 @@ export default function AdminGuide() {
             items={content.serviceProviders}
             onChange={(serviceProviders) => update({ serviceProviders })}
             newItem={emptyProvider}
-            render={(p, set) => (
+            render={(p, set, index) => (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {(
                   [
@@ -214,16 +212,61 @@ export default function AdminGuide() {
                     ["website", "Website"],
                     ["account", "Account"],
                   ] as const
-                ).map(([key, label]) => (
-                  <label key={key} className="flex flex-col gap-1.5 text-sm">
-                    <span className="text-fg-muted">{label}</span>
-                    <input
-                      value={p[key]}
-                      onChange={(e) => set({ ...p, [key]: e.target.value })}
-                      className="rounded-md border border-border bg-bg px-3 py-2 text-base"
-                    />
-                  </label>
-                ))}
+                ).map(([key, label]) => {
+                  const isWebsite = key === "website"
+                  const isInvalid =
+                    isWebsite && invalidWebsiteIndex === index
+                  return (
+                    <label key={key} className="flex flex-col gap-1.5 text-sm">
+                      <span
+                        className={
+                          isInvalid ? "text-danger" : "text-fg-muted"
+                        }
+                      >
+                        {label}
+                      </span>
+                      <input
+                        ref={(el) => {
+                          if (!isWebsite) return
+                          if (el) websiteRefs.current.set(index, el)
+                          else websiteRefs.current.delete(index)
+                        }}
+                        type={
+                          isWebsite
+                            ? "url"
+                            : key === "email"
+                              ? "email"
+                              : key === "phone"
+                                ? "tel"
+                                : "text"
+                        }
+                        pattern={isWebsite ? "https?://.+" : undefined}
+                        placeholder={
+                          isWebsite ? "https://example.com" : undefined
+                        }
+                        aria-invalid={isInvalid || undefined}
+                        value={p[key]}
+                        onChange={(e) => {
+                          if (isWebsite && invalidWebsiteIndex === index) {
+                            setInvalidWebsiteIndex(null)
+                            setErr(null)
+                          }
+                          set({ ...p, [key]: e.target.value })
+                        }}
+                        className={`rounded-md border bg-bg px-3 py-2 text-base ${
+                          isInvalid
+                            ? "border-danger ring-2 ring-danger/30 focus:outline-none"
+                            : "border-border"
+                        }`}
+                      />
+                      {isInvalid && (
+                        <span className="text-xs text-danger">
+                          Must start with http:// or https://
+                        </span>
+                      )}
+                    </label>
+                  )
+                })}
                 <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
                   <span className="text-fg-muted">Notes</span>
                   <textarea
@@ -237,16 +280,30 @@ export default function AdminGuide() {
             )}
           />
         </Section>
-      </div>
 
-      <div className="mt-10 flex justify-end">
-        <button
-          onClick={onSave}
-          disabled={busy}
-          className="rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-white shadow-[0_1px_0_rgba(89,74,66,0.06),0_6px_16px_-8px_rgba(120,145,109,0.6)] hover:bg-sage-hover disabled:opacity-40"
-        >
-          {busy ? "Saving…" : "Save changes"}
-        </button>
+        <Section title="Officers">
+          <ListEditor
+            items={content.officers}
+            onChange={(officers) => update({ officers })}
+            newItem={(): Officer => ({ role: "", name: "" })}
+            render={(o, set) => (
+              <div className="flex gap-2">
+                <input
+                  value={o.role}
+                  onChange={(e) => set({ ...o, role: e.target.value })}
+                  placeholder="Role"
+                  className="flex-1 rounded-md border border-border bg-bg px-3 py-2 text-base"
+                />
+                <input
+                  value={o.name}
+                  onChange={(e) => set({ ...o, name: e.target.value })}
+                  placeholder="Name"
+                  className="flex-1 rounded-md border border-border bg-bg px-3 py-2 text-base"
+                />
+              </div>
+            )}
+          />
+        </Section>
       </div>
     </main>
   )
@@ -276,7 +333,7 @@ function ListEditor<T>({
   items: T[]
   onChange: (items: T[]) => void
   newItem: () => T
-  render: (item: T, set: (next: T) => void) => React.ReactNode
+  render: (item: T, set: (next: T) => void, index: number) => React.ReactNode
 }) {
   const setAt = (i: number, next: T) => {
     const copy = [...items]
@@ -320,7 +377,7 @@ function ListEditor<T>({
               <ArrowDown size={12} weight="bold" />
             </button>
           </div>
-          <div className="flex-1">{render(item, (next) => setAt(i, next))}</div>
+          <div className="flex-1">{render(item, (next) => setAt(i, next), i)}</div>
           <button
             type="button"
             onClick={() => remove(i)}
