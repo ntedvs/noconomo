@@ -6,6 +6,7 @@ import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
 import { ErrorMsg, Field, Modal } from "./gallery-modal"
 import { btnPrimary, btnSecondary, inputCls } from "./gallery-shared"
+import { generateImageThumbnail } from "./gallery-thumbnails"
 
 async function generateVideoPoster(file: File): Promise<Blob> {
   const url = URL.createObjectURL(file)
@@ -103,7 +104,17 @@ export function UploadModal({
       for (let i = 0; i < files.length; i++) {
         const f = files[i]
         const isVid = f.type.startsWith("video/")
+        const isImg = f.type.startsWith("image/")
+        let thumbnailStorageId: Id<"_storage"> | undefined
         let posterStorageId: Id<"_storage"> | undefined
+        if (isImg) {
+          try {
+            const thumbnail = await generateImageThumbnail(f)
+            thumbnailStorageId = await uploadBlob(thumbnail, "image/jpeg")
+          } catch (e) {
+            console.warn("Thumbnail generation failed", e)
+          }
+        }
         if (isVid) {
           try {
             const poster = await generateVideoPoster(f)
@@ -118,6 +129,7 @@ export function UploadModal({
           storageId,
           title: useTitle,
           contentType: f.type || undefined,
+          thumbnailStorageId,
           posterStorageId,
           ...(folderId ? { folderId } : {}),
         })

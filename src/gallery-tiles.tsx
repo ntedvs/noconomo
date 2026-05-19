@@ -107,7 +107,7 @@ export function Tile({
   isDragging?: boolean
 }) {
   const video = isVideo(media)
-  const thumb = video ? media.posterUrl : media.url
+  const thumb = video ? media.posterUrl : media.thumbnailUrl
 
   return (
     <figure>

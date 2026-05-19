@@ -6,6 +6,10 @@ import { verifyFileUrl } from "./fileUrl"
 
 const http = httpRouter()
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+}
+
 http.route({
   path: "/file",
   method: "GET",
@@ -14,21 +18,32 @@ http.route({
     const id = url.searchParams.get("id")
     const e = url.searchParams.get("e")
     const s = url.searchParams.get("s")
-    if (!id || !e || !s) return new Response("Bad Request", { status: 400 })
+    if (!id || !e || !s) {
+      return new Response("Bad Request", { status: 400, headers: corsHeaders })
+    }
 
     const expiresAt = Number(e)
     const ok = await verifyFileUrl(id, expiresAt, s)
-    if (!ok) return new Response("Link expired or invalid", { status: 403 })
+    if (!ok) {
+      return new Response("Link expired or invalid", {
+        status: 403,
+        headers: corsHeaders,
+      })
+    }
 
     const storageId = id as Id<"_storage">
     const referenced = await ctx.runQuery(
       internal.storageOwnership.isStorageReferenced,
       { storageId },
     )
-    if (!referenced) return new Response("Not Found", { status: 404 })
+    if (!referenced) {
+      return new Response("Not Found", { status: 404, headers: corsHeaders })
+    }
 
     const blob = await ctx.storage.get(storageId)
-    if (!blob) return new Response("Not Found", { status: 404 })
+    if (!blob) {
+      return new Response("Not Found", { status: 404, headers: corsHeaders })
+    }
 
     const contentType =
       (await ctx.runQuery(internal.storageOwnership.getStorageContentType, {
@@ -40,6 +55,7 @@ http.route({
       "Cache-Control": "private, max-age=300",
       "Referrer-Policy": "no-referrer",
       "Accept-Ranges": "bytes",
+      ...corsHeaders,
     }
 
     const rangeHeader = req.headers.get("range")

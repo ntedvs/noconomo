@@ -3,6 +3,7 @@ import type { Id } from "../convex/_generated/dataModel"
 export type Media = {
   _id: Id<"images">
   url: string | null
+  thumbnailUrl: string | null
   posterUrl: string | null
   contentType?: string
   uploadedBy: Id<"users">

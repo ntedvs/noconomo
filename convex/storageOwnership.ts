@@ -30,7 +30,10 @@ async function storageIsReferenced(
   const images = await ctx.db.query("images").collect()
   if (
     images.some(
-      (i) => i.storageId === storageId || i.posterStorageId === storageId,
+      (i) =>
+        i.storageId === storageId ||
+        i.thumbnailStorageId === storageId ||
+        i.posterStorageId === storageId,
     )
   ) {
     return true

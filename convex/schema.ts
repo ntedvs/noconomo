@@ -63,6 +63,7 @@ export default defineSchema({
     uploadedBy: v.id("users"),
     title: v.optional(v.string()),
     contentType: v.optional(v.string()),
+    thumbnailStorageId: v.optional(v.id("_storage")),
     posterStorageId: v.optional(v.id("_storage")),
     folderId: v.optional(v.id("folders")),
   })

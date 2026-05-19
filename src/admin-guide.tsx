@@ -214,14 +214,11 @@ export default function AdminGuide() {
                   ] as const
                 ).map(([key, label]) => {
                   const isWebsite = key === "website"
-                  const isInvalid =
-                    isWebsite && invalidWebsiteIndex === index
+                  const isInvalid = isWebsite && invalidWebsiteIndex === index
                   return (
                     <label key={key} className="flex flex-col gap-1.5 text-sm">
                       <span
-                        className={
-                          isInvalid ? "text-danger" : "text-fg-muted"
-                        }
+                        className={isInvalid ? "text-danger" : "text-fg-muted"}
                       >
                         {label}
                       </span>
@@ -377,7 +374,9 @@ function ListEditor<T>({
               <ArrowDown size={12} weight="bold" />
             </button>
           </div>
-          <div className="flex-1">{render(item, (next) => setAt(i, next), i)}</div>
+          <div className="flex-1">
+            {render(item, (next) => setAt(i, next), i)}
+          </div>
           <button
             type="button"
             onClick={() => remove(i)}

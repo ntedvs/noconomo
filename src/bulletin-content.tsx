@@ -11,7 +11,7 @@ export function BulletinContent({
 }) {
   if (format === "markdown") {
     return (
-      <div className="text-base text-fg space-y-3">
+      <div className="space-y-3 text-base text-fg">
         <Markdown
           remarkPlugins={[remarkGfm, remarkBreaks]}
           components={{
@@ -29,10 +29,10 @@ export function BulletinContent({
             ),
             em: (props) => <em {...props} className="italic" />,
             ul: (props) => (
-              <ul {...props} className="list-disc pl-5 space-y-1" />
+              <ul {...props} className="list-disc space-y-1 pl-5" />
             ),
             ol: (props) => (
-              <ol {...props} className="list-decimal pl-5 space-y-1" />
+              <ol {...props} className="list-decimal space-y-1 pl-5" />
             ),
             li: (props) => <li {...props} className="text-base" />,
             h1: (props) => (
@@ -71,9 +71,7 @@ export function BulletinContent({
                 className="overflow-x-auto rounded-md bg-bg-muted p-3 font-mono text-sm"
               />
             ),
-            hr: (props) => (
-              <hr {...props} className="my-2 border-border" />
-            ),
+            hr: (props) => <hr {...props} className="my-2 border-border" />,
           }}
         >
           {content}

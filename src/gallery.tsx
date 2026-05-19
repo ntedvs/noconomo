@@ -10,6 +10,7 @@ import { Link, useNavigate, useParams } from "react-router"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { useAuth } from "./auth"
+import { GalleryBackfill } from "./gallery-backfill"
 import { ConfirmModal } from "./gallery-modal"
 import {
   DeleteFolderModal,
@@ -35,7 +36,7 @@ export default function Gallery() {
   const navigate = useNavigate()
   const folderId = params.folderId as Id<"folders"> | undefined
 
-  const items = useQuery(api.images.list, { token })
+  const items = useQuery(api.images.list, { token, folderId: folderId ?? null })
   const folders = useQuery(api.folders.list, { token, kind: "gallery" })
   const removeImage = useMutation(api.images.remove)
   const moveImage = useMutation(api.images.moveToFolder)
@@ -53,7 +54,7 @@ export default function Gallery() {
   const [viewer, setViewer] = useState<{ index: number } | null>(null)
 
   const allFolders = (folders ?? []) as FolderRow[]
-  const allImages = (items ?? []) as Media[]
+  const childImages = (items ?? []) as Media[]
 
   const currentFolder = folderId
     ? allFolders.find((f) => f._id === folderId)
@@ -72,11 +73,6 @@ export default function Gallery() {
         .filter((f) => (f.parentFolderId ?? null) === (folderId ?? null))
         .sort((a, b) => a.name.localeCompare(b.name)),
     [allFolders, folderId],
-  )
-
-  const childImages = useMemo(
-    () => allImages.filter((m) => (m.folderId ?? null) === (folderId ?? null)),
-    [allImages, folderId],
   )
 
   const breadcrumbs = useMemo(() => {
@@ -102,7 +98,7 @@ export default function Gallery() {
       | Id<"images">
       | ""
     if (!imgId) return
-    const img = allImages.find((m) => m._id === imgId)
+    const img = childImages.find((m) => m._id === imgId)
     if (!img) return
     if ((img.folderId ?? null) === targetFolderId) return
     try {
@@ -143,6 +139,7 @@ export default function Gallery() {
             <UploadSimple size={16} /> Upload
           </button>
         </div>
+        <GalleryBackfill />
       </header>
 
       {(breadcrumbs.length > 0 || folderId) && (
