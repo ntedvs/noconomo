@@ -14,6 +14,7 @@ export const add = mutation({
   args: {
     token: v.union(v.string(), v.null()),
     content: v.string(),
+    format: v.optional(v.union(v.literal("plain"), v.literal("markdown"))),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
@@ -22,6 +23,7 @@ export const add = mutation({
     return await ctx.db.insert("bulletins", {
       content,
       createdBy: user._id,
+      format: args.format ?? "plain",
     })
   },
 })
@@ -31,6 +33,7 @@ export const update = mutation({
     token: v.union(v.string(), v.null()),
     id: v.id("bulletins"),
     content: v.string(),
+    format: v.optional(v.union(v.literal("plain"), v.literal("markdown"))),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx, args.token)
@@ -40,7 +43,7 @@ export const update = mutation({
       throw new Error("Not allowed")
     const content = args.content.trim()
     if (!content) throw new Error("Empty bulletin")
-    await ctx.db.patch(args.id, { content })
+    await ctx.db.patch(args.id, { content, format: args.format ?? "plain" })
     return null
   },
 })

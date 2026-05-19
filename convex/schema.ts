@@ -18,6 +18,7 @@ export default defineSchema({
   bulletins: defineTable({
     content: v.string(),
     createdBy: v.id("users"),
+    format: v.optional(v.union(v.literal("plain"), v.literal("markdown"))),
   }),
 
   guide: defineTable({

@@ -2,6 +2,7 @@ import { useQuery } from "convex/react"
 import { Link } from "react-router"
 import { api } from "../convex/_generated/api"
 import { useAuth } from "./auth"
+import { BulletinContent } from "./bulletin-content"
 import { SignIn } from "./sign-in"
 import { useTitle } from "./use-title"
 
@@ -44,9 +45,7 @@ export default function App() {
                 key={b._id}
                 className="rounded-md border border-border bg-paper px-5 py-4 shadow-[0_1px_0_rgba(89,74,66,0.04)] transition hover:border-border-strong hover:shadow-[0_4px_16px_-8px_rgba(89,74,66,0.18)]"
               >
-                <p className="text-base whitespace-pre-wrap text-fg">
-                  {b.content}
-                </p>
+                <BulletinContent content={b.content} format={b.format} />
               </li>
             ))}
           </ul>
