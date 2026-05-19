@@ -19,7 +19,6 @@ type Member = {
   family?: string
   address?: string
   director?: boolean
-  boardMember?: boolean
 }
 
 const FAMILIES = ["Abbott", "Pirie", "Rice", "Guest"] as const
@@ -83,9 +82,7 @@ export default function Members() {
       if (familyFilter && u.family !== familyFilter) return false
       if (!q) return true
       return (
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        (u.family ?? "").toLowerCase().includes(q)
+        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
       )
     })
     return matches.sort((a, b) =>
@@ -124,7 +121,7 @@ export default function Members() {
           />
           <input
             type="search"
-            placeholder="Search name, email, family…"
+            placeholder="Search name or email…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full rounded-full border border-border bg-paper py-2 pr-4 pl-9 text-sm"
@@ -268,22 +265,22 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-fg/30 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-stretch justify-center bg-fg/30 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
-        className={`w-full ${
+        className={`flex max-h-[100dvh] w-full flex-col overflow-hidden border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-lg sm:border ${
           maxWidth === "sm"
-            ? "max-w-sm"
+            ? "sm:max-w-sm"
             : maxWidth === "md"
-              ? "max-w-md"
-              : "max-w-xl"
-        } overflow-hidden rounded-lg border border-border bg-paper shadow-[0_20px_60px_-15px_rgba(89,74,66,0.35)]`}
+              ? "sm:max-w-md"
+              : "sm:max-w-xl"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+        <header className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h3 className="font-display text-xl text-brown">{title}</h3>
           <button
             onClick={onClose}
@@ -293,7 +290,7 @@ function Modal({
             <X />
           </button>
         </header>
-        <div className="p-5">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
       </div>
     </div>
   )
@@ -341,7 +338,6 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
   const [family, setFamily] = useState("")
   const [address, setAddress] = useState("")
   const [director, setDirector] = useState(false)
-  const [boardMember, setBoardMember] = useState(false)
   const [admin, setAdmin] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -370,7 +366,6 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
         address: address || undefined,
         ...(sharesNum !== undefined ? { shares: sharesNum } : {}),
         director,
-        boardMember,
         admin,
       })
       onClose()
@@ -483,15 +478,6 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
             <label className="flex items-center gap-2 text-sm text-brown">
               <input
                 type="checkbox"
-                checked={boardMember}
-                onChange={(e) => setBoardMember(e.target.checked)}
-                className="h-4 w-4 accent-sage"
-              />
-              <span>Board member</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm text-brown">
-              <input
-                type="checkbox"
                 checked={admin}
                 onChange={(e) => setAdmin(e.target.checked)}
                 className="h-4 w-4 accent-sage"
@@ -542,7 +528,6 @@ function EditMemberModal({
   const [family, setFamily] = useState(member.family ?? "")
   const [address, setAddress] = useState(member.address ?? "")
   const [director, setDirector] = useState(member.director ?? false)
-  const [boardMember, setBoardMember] = useState(member.boardMember ?? false)
   const [admin, setAdmin] = useState(member.admin)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -570,7 +555,7 @@ function EditMemberModal({
         family,
         address,
         ...(sharesNum !== undefined ? { shares: sharesNum } : {}),
-        ...(isAdmin ? { email, admin, director, boardMember } : {}),
+        ...(isAdmin ? { email, admin, director } : {}),
       })
       onClose()
     } catch (e) {
@@ -679,15 +664,6 @@ function EditMemberModal({
                     className="h-4 w-4 accent-sage"
                   />
                   <span>Director</span>
-                </label>
-                <label className="flex items-center gap-2 text-sm text-brown">
-                  <input
-                    type="checkbox"
-                    checked={boardMember}
-                    onChange={(e) => setBoardMember(e.target.checked)}
-                    className="h-4 w-4 accent-sage"
-                  />
-                  <span>Board member</span>
                 </label>
                 <label className="flex items-center gap-2 text-sm text-brown">
                   <input

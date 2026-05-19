@@ -10,7 +10,6 @@ export const adminMemberEmails = internalQuery({
         v.literal("all"),
         v.literal("shareholders"),
         v.literal("directors"),
-        v.literal("boardMembers"),
       ),
     ),
   },
@@ -21,7 +20,6 @@ export const adminMemberEmails = internalQuery({
     const filtered = users.filter((u) => {
       if (audience === "shareholders") return (u.shares ?? 0) > 0
       if (audience === "directors") return u.director === true
-      if (audience === "boardMembers") return u.boardMember === true
       return true
     })
     return filtered.map((u) => u.email).filter((e): e is string => !!e)
@@ -45,7 +43,6 @@ export const list = query({
       family: u.family,
       address: u.address,
       director: u.director ?? false,
-      boardMember: u.boardMember ?? false,
     }))
   },
 })
@@ -63,7 +60,6 @@ export const update = mutation({
     family: v.optional(v.string()),
     address: v.optional(v.string()),
     director: v.optional(v.boolean()),
-    boardMember: v.optional(v.boolean()),
     admin: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -122,11 +118,6 @@ export const update = mutation({
       if (!isAdmin) throw new Error("Only admins can change director status")
       patch.director = args.director
     }
-    if (args.boardMember !== undefined) {
-      if (!isAdmin)
-        throw new Error("Only admins can change board member status")
-      patch.boardMember = args.boardMember
-    }
 
     await ctx.db.patch(args.userId, patch)
     return null
@@ -145,7 +136,6 @@ export const create = mutation({
     family: v.optional(v.string()),
     address: v.optional(v.string()),
     director: v.optional(v.boolean()),
-    boardMember: v.optional(v.boolean()),
     admin: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -177,7 +167,6 @@ export const create = mutation({
       ...(args.family?.trim() ? { family: args.family.trim() } : {}),
       ...(args.address?.trim() ? { address: args.address.trim() } : {}),
       ...(args.director ? { director: true } : {}),
-      ...(args.boardMember ? { boardMember: true } : {}),
       ...(args.admin ? { admin: true } : {}),
     })
   },

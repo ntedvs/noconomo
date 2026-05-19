@@ -13,7 +13,6 @@ export default defineSchema({
     family: v.optional(v.string()),
     address: v.optional(v.string()),
     director: v.optional(v.boolean()),
-    boardMember: v.optional(v.boolean()),
   }).index("by_email", ["email"]),
 
   bulletins: defineTable({

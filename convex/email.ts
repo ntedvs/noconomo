@@ -57,7 +57,6 @@ export const broadcast = action({
         v.literal("all"),
         v.literal("shareholders"),
         v.literal("directors"),
-        v.literal("boardMembers"),
       ),
     ),
     attachments: v.optional(

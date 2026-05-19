@@ -20,7 +20,7 @@ export default function AdminEmail() {
   const broadcast = useAction(api.email.broadcast)
   const generateUploadUrl = useMutation(api.documents.generateUploadUrl)
   const [audience, setAudience] = useState<
-    "all" | "shareholders" | "directors" | "boardMembers"
+    "all" | "shareholders" | "directors"
   >("all")
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
@@ -157,11 +157,7 @@ export default function AdminEmail() {
             value={audience}
             onChange={(e) =>
               setAudience(
-                e.target.value as
-                  | "all"
-                  | "shareholders"
-                  | "directors"
-                  | "boardMembers",
+                e.target.value as "all" | "shareholders" | "directors",
               )
             }
             className="rounded-md border border-border bg-bg px-3 py-2 text-base"
@@ -169,7 +165,6 @@ export default function AdminEmail() {
             <option value="all">Everyone</option>
             <option value="shareholders">Shareholders</option>
             <option value="directors">Directors</option>
-            <option value="boardMembers">Board members</option>
           </select>
         </label>
 
