@@ -52,7 +52,7 @@ http.route({
 
     const baseHeaders: Record<string, string> = {
       "Content-Type": contentType,
-      "Cache-Control": "private, max-age=300",
+      "Cache-Control": "private, max-age=86400, immutable",
       "Referrer-Policy": "no-referrer",
       "Accept-Ranges": "bytes",
       ...corsHeaders,

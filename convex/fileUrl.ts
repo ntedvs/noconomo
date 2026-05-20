@@ -1,4 +1,5 @@
-const URL_TTL_MS = 60 * 60 * 1000
+const URL_BUCKET_MS = 24 * 60 * 60 * 1000
+const URL_TTL_MS = 2 * URL_BUCKET_MS
 
 function getSecret(): string {
   const secret = process.env.FILE_URL_SECRET
@@ -67,7 +68,8 @@ export async function verifyFileUrl(
 
 export async function fileProxyUrl(storageId: string): Promise<string> {
   const base = process.env.CONVEX_SITE_URL ?? ""
-  const expiresAt = Date.now() + URL_TTL_MS
+  const expiresAt =
+    Math.floor(Date.now() / URL_BUCKET_MS) * URL_BUCKET_MS + URL_TTL_MS
   const signature = await sign(`${storageId}.${expiresAt}`)
   return `${base}/file?id=${encodeURIComponent(storageId)}&e=${expiresAt}&s=${signature}`
 }
