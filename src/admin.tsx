@@ -11,7 +11,12 @@ const pages: { to: string; title: string; description: string }[] = [
   {
     to: "/admin/email",
     title: "Send email",
-    description: "Send a message to all members.",
+    description: "Send a message to members.",
+  },
+  {
+    to: "/admin/archive",
+    title: "Archive",
+    description: "Review previously sent emails.",
   },
 ]
 

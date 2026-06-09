@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter, Routes, Route, Outlet } from "react-router"
 import "./index.css"
 import Admin from "./admin"
+import AdminArchive from "./admin-archive"
 import AdminEmail from "./admin-email"
 import AdminGuide from "./admin-guide"
 import App from "./app.tsx"
@@ -148,6 +149,14 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth>
                     <AdminEmail />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/archive"
+                element={
+                  <RequireAuth>
+                    <AdminArchive />
                   </RequireAuth>
                 }
               />

@@ -136,4 +136,30 @@ export default defineSchema({
       ),
     ),
   }),
+
+  sentEmails: defineTable({
+    subject: v.string(),
+    body: v.string(),
+    audience: v.union(
+      v.literal("all"),
+      v.literal("shareholders"),
+      v.literal("directors"),
+    ),
+    sentBy: v.id("users"),
+    recipientCount: v.number(),
+    sentCount: v.number(),
+    failedCount: v.number(),
+    failed: v.array(
+      v.object({
+        recipients: v.array(v.string()),
+        error: v.string(),
+      }),
+    ),
+    attachments: v.array(
+      v.object({
+        filename: v.string(),
+        contentType: v.optional(v.string()),
+      }),
+    ),
+  }),
 })

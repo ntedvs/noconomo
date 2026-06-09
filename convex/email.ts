@@ -161,6 +161,26 @@ export const broadcast = action({
     await Promise.allSettled(
       attachmentSpecs.map((s) => ctx.storage.delete(s.storageId)),
     )
+    const failedCount = failed.reduce(
+      (n, batch) => n + batch.recipients.length,
+      0,
+    )
+    await ctx.runMutation(internal.emailArchive.record, {
+      token: args.token,
+      subject,
+      body,
+      audience: args.audience ?? "all",
+      recipientCount: ccs.length,
+      sentCount: sent,
+      failedCount,
+      failed,
+      attachments: attachmentSpecs.map((attachment) => ({
+        filename: attachment.filename,
+        ...(attachment.contentType
+          ? { contentType: attachment.contentType }
+          : {}),
+      })),
+    })
     return { recipients: ccs.length, sent, failed }
   },
 })
