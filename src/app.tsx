@@ -9,7 +9,7 @@ import { useTitle } from "./use-title"
 export default function App() {
   useTitle("Noconomo")
   const { token, user } = useAuth()
-  const bulletins = useQuery(api.bulletins.list, token ? { token } : "skip")
+  const bulletins = useQuery(api.bulletins.list, user ? { token } : "skip")
 
   if (user === undefined) {
     return (
